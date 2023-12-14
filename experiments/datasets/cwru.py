@@ -162,3 +162,15 @@ class CWRU():
                 self.keys = np.append(self.keys, key)
 
 
+    def get_data(self):
+
+        if len(self.signal_data) == 0:
+            self.load_acquisitions()
+
+        # get the first index of each feature
+        labels_name = list(set(self.labels))
+        index = []
+        for label in labels_name:
+            index.append(np.where(self.labels == label)[0][0]) # takes only the first index
+
+        return self.signal_data, self.labels
