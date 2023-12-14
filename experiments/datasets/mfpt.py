@@ -94,8 +94,6 @@ class MFPT():
     def __init__(self):
         self.rawfilesdir = "mfpt_raw"
         self.url="https://mfpt.org/wp-content/uploads/2020/02/MFPT-Fault-Data-Sets-20200227T131140Z-001.zip"
-        self.n_folds = 5
-        #self.sample_size = 8192
         self.sample_size = 4096
         self.n_samples_acquisition = 100  # used for FaultNet
 
@@ -169,51 +167,29 @@ class MFPT():
         for key in self.files:
             matlab_file = scipy.io.loadmat(self.files[key])
 
-            if len(key) == 8:
+            if len(key) == 8: 
                 vibration_data_raw = matlab_file['bearing'][0][0][1]
-            else:
+            else: 
                 vibration_data_raw = matlab_file['bearing'][0][0][2]
 
             vibration_data = np.array([ elem for singleList in vibration_data_raw for elem in singleList])
+            
             for i in range(len(vibration_data)//self.sample_size):
                 sample = vibration_data[(i * self.sample_size):((i + 1) * self.sample_size)]
                 self.signal_data = np.append(self.signal_data, np.array([sample]), axis=0)
                 self.labels = np.append(self.labels, key[0])
-                self.keys = np.append(self.keys, key)
+                self.keys = np.append(self.keys, key)       
 
-    def kfold(self):
 
-        if len(self.signal_data) == 0:
-            self.load_acquisitions()
-
-        kf = KFold(n_splits=self.n_folds, shuffle=True)
-
-        for train, test in kf.split(self.signal_data):
-            # print("Train Index: ", train, "Test Index: ", test)
-            yield self.signal_data[train], self.labels[train], self.signal_data[test], self.labels[test]
-
-    def stratifiedkfold(self):
+    def get_data(self):
 
         if len(self.signal_data) == 0:
             self.load_acquisitions()
 
-        kf = StratifiedShuffleSplit(n_splits=self.n_folds)
+        # get the first index of each feature
+        labels_name = list(set(self.labels))
+        index = []
+        for label in labels_name:
+            index.append(np.where(self.labels == label)[0][0]) # takes only the first index
 
-        for train, test in kf.split(self.signal_data, self.labels):
-            # print("Train Index: ", train, "Test Index: ", test)
-            yield self.signal_data[train], self.labels[train], self.signal_data[test], self.labels[test]
-
-    def groupkfold_acquisition(self):
-
-        if len(self.signal_data) == 0:
-            self.load_acquisitions()
-
-        groups = []
-        for i in self.keys:
-            groups = np.append(groups, i)
-
-        kf = GroupShuffleSplit(n_splits=self.n_folds)
-
-        for train, test in kf.split(self.signal_data, self.labels, groups):
-            # print("Train Index: ", train, "Test Index: ", test)
-            yield self.signal_data[train], self.labels[train], self.signal_data[test], self.labels[test]
+        return self.signal_data, self.labels
