@@ -3,3 +3,6 @@
 *raw/
 *.pickle
 .vscode
+mfpt_raw
+cwru_raw
+[0-9]*.[0-9]*[0-9]_*.csv
