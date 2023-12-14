@@ -50,16 +50,16 @@ def run_train_test(classifier, X_train, y_train, X_test):
 
 @timer
 def experimenter(source, target, clfs):
-    print("### Dataset: ", source[0], "###")
-    print("### Dataset: ", target[0], "###")
+    print("### Source: ", source[0], "###")
+    print("### Target: ", target[0], "###")
 
     write_in_file("execution_time", f"{target[0]}\n")
     # dataset[1].download()
 
     print("Performing Experiments.")
     
-    X_train, y_train = source[1].get_data()
-    X_test, y_test = target[1].get_data()
+    X_train, y_train = source[1].get_acquisitions(1024)
+    X_test, y_test = target[1].get_acquisitions(1024)
 
     results = []
     for clf in clfs:
@@ -86,21 +86,19 @@ def main():
     dname = os.path.dirname(abspath)
     os.chdir(dname)
 
-    # Define experiments classifiers
+    #### Define experiments classifiers
     clfs = [#('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
-            # ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
+            ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
             # ('Logistic Regression', auto_lr.instantiate_auto_lr()),
             # ('SVM', auto_svm.instantiate_auto_svm()),
             # ('MLP', auto_mlp.instantiate_auto_mlp()),
-            ('CNN', auto_cnn.instantiate_auto_cnn()),
-            ('FaultNet', auto_faultnet.instantiate_auto_cnn()),
+            # ('CNN', auto_cnn.instantiate_auto_cnn()),
+            # ('FaultNet', auto_faultnet.instantiate_auto_cnn()),
             ]
-
    
     
 
-    # Define experiments data set
-
+    #### Define experiments data set
     #dataset = ('Paderborn', Paderborn(bearing_names_file="paderborn_bearings.csv", n_aquisitions=20))
     #dataset = ('Paderborn', Paderborn(bearing_names_file="paderborn_bearings_min.csv", n_aquisitions=4))
     target = ('MFPT', MFPT())
@@ -110,6 +108,7 @@ def main():
     #dataset = ('CWRU', CWRU(bearing_names_file="cwru_bearings_debug.csv"))
 
     experimenter(source, target, clfs)
+
 
 if __name__ == "__main__":
     main()

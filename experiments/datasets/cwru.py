@@ -88,6 +88,7 @@ class CWRU():
         self.rawfilesdir = "cwru_raw"
         self.url = "https://engineering.case.edu/sites/default/files/"
         self.sample_size = 4096
+        self.n_samples_acquisitions = 1024
         self.bearing_names_file = bearing_names_file
         self.bearing_labels, self.bearing_names = self.get_cwru_bearings()
 
@@ -162,19 +163,26 @@ class CWRU():
                 self.keys = np.append(self.keys, key)
 
 
-    def get_data(self):
+    def get_acquisitions (self, n_samples_acquisitions=None):
 
         if len(self.signal_data) == 0:
             self.load_acquisitions()
 
+        if not n_samples_acquisitions:
+            return self.signal_data, self.labels
+
         # get the first index of each feature
-        labels_name = list(set(self.labels))
+        label_names = list(set(self.labels))        
+        n_samples_per_label = n_samples_acquisitions // len(label_names)
+
+        index_list = tuple()
+        for label in label_names:
+            index_list = index_list + (np.where(self.labels == label)[0][:n_samples_per_label],)
         
-        
-        list_index = np.where(self.labels != 'B')[0] # takes only the first index
+        indexes = np.concatenate(index_list, axis=0)
 
+        # print('CWRU')
+        # print('labels ----', self.labels[indexes].shape)
+        # print('signal ----', self.signal_data[indexes].shape)
 
-        print('labels ----', self.labels[list_index].shape)
-        print('signal ----', self.signal_data[list_index].shape)
-
-        return self.signal_data[list_index], self.labels[list_index]
+        return self.signal_data[indexes], self.labels[indexes]
