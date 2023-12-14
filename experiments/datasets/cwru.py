@@ -169,8 +169,12 @@ class CWRU():
 
         # get the first index of each feature
         labels_name = list(set(self.labels))
-        index = []
-        for label in labels_name:
-            index.append(np.where(self.labels == label)[0][0]) # takes only the first index
+        
+        
+        list_index = np.where(self.labels != 'B')[0] # takes only the first index
 
-        return self.signal_data, self.labels
+
+        print('labels ----', self.labels[list_index].shape)
+        print('signal ----', self.signal_data[list_index].shape)
+
+        return self.signal_data[list_index], self.labels[list_index]

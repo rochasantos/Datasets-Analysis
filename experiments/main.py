@@ -37,15 +37,6 @@ def timer(func):
 @timer
 def run_train_test(classifier, X_train, y_train, X_test):
 
-    # Verifica se os conjuntos de treino e teste têm o mesmo número de features
-    if X_train.shape[1] != X_test.shape[1]:
-        raise ValueError("O número de features nos conjuntos de treino e teste é diferente.")
-
-    # Se o tamanho do conjunto de treino for maior que o tamanho do conjunto de teste, ajusta o conjunto de treino
-    if X_train.shape[0] > X_test.shape[0]:
-        X_train = X_train[:X_test.shape[0], :]
-        y_train = y_train[:X_test.shape[0]]
-
     classifier.fit(X_train, y_train)
     y_pred = classifier.predict(X_test)
     if use_gpu == 1:
@@ -62,7 +53,7 @@ def experimenter(source, target, clfs):
     print("### Dataset: ", source[0], "###")
     print("### Dataset: ", target[0], "###")
 
-    write_in_file("execution_time", f"{source[0]}\n")
+    write_in_file("execution_time", f"{target[0]}\n")
     # dataset[1].download()
 
     print("Performing Experiments.")
@@ -97,12 +88,12 @@ def main():
 
     # Define experiments classifiers
     clfs = [#('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
-            ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
-            #('Logistic Regression', auto_lr.instantiate_auto_lr()),
-            #('SVM', auto_svm.instantiate_auto_svm()),
-            #('MLP', auto_mlp.instantiate_auto_mlp()),
-            #('CNN', auto_cnn.instantiate_auto_cnn()),
-            #('FaultNet', auto_faultnet.instantiate_auto_cnn()),
+            # ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
+            # ('Logistic Regression', auto_lr.instantiate_auto_lr()),
+            # ('SVM', auto_svm.instantiate_auto_svm()),
+            # ('MLP', auto_mlp.instantiate_auto_mlp()),
+            ('CNN', auto_cnn.instantiate_auto_cnn()),
+            ('FaultNet', auto_faultnet.instantiate_auto_cnn()),
             ]
 
    

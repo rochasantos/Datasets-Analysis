@@ -21,8 +21,9 @@ def scores(file):
         f1_macro.append(f1_score(y_actual, y_pred, average='macro'))
         
         print("# Classification Model: ", classifier, "#")
-        print("Accuracy: ", accuracy, "Mean: ", mean(accuracy), "Std: ", stdev(accuracy))
-        print("F1 Macro: ", f1_macro, "Mean: ", mean(f1_macro), "Std: ", stdev(f1_macro))           
+        
+        print("Accuracy: ", accuracy)
+        print("F1 Macro: ", f1_macro)           
 
         print()
         accuracy = []
