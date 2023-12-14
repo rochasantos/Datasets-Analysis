@@ -37,6 +37,15 @@ def timer(func):
 @timer
 def run_train_test(classifier, X_train, y_train, X_test):
 
+    # Verifica se os conjuntos de treino e teste têm o mesmo número de features
+    if X_train.shape[1] != X_test.shape[1]:
+        raise ValueError("O número de features nos conjuntos de treino e teste é diferente.")
+
+    # Se o tamanho do conjunto de treino for maior que o tamanho do conjunto de teste, ajusta o conjunto de treino
+    if X_train.shape[0] > X_test.shape[0]:
+        X_train = X_train[:X_test.shape[0], :]
+        y_train = y_train[:X_test.shape[0]]
+
     classifier.fit(X_train, y_train)
     y_pred = classifier.predict(X_test)
     if use_gpu == 1:
@@ -49,41 +58,36 @@ def run_train_test(classifier, X_train, y_train, X_test):
     return y_pred, y_proba
 
 @timer
-def experimenter(dataset, clfs, splits, n_experiments):
-    print("### Dataset: ", dataset[0], "###")
-    write_in_file("execution_time", f"{dataset[0]}\n")
-    dataset[1].download()
-    #results = []
+def experimenter(source, target, clfs):
+    print("### Dataset: ", source[0], "###")
+    print("### Dataset: ", target[0], "###")
+
+    write_in_file("execution_time", f"{source[0]}\n")
+    # dataset[1].download()
+
     print("Performing Experiments.")
-    for i in range(1, n_experiments+1):
-        results = []
-        print("## Experiment N.", i, "##")
-        for folds in splits:
-            for clf in clfs:
-                fold_number = 1
-                print(folds[0], clf[0])
-                write_in_file("execution_time", f"{folds[0]} - {clf[0]}\n")
-                for X_train, y_train, X_test, y_test in getattr(dataset[1], folds[1])():
-                    write_in_file("execution_time", f"{fold_number}: ")
-                    print("fold_number: ", fold_number)
+    
+    X_train, y_train = source[1].get_data()
+    X_test, y_test = target[1].get_data()
 
-                    if use_gpu == 1:
-                        p = Process(target=run_train_test, args=(clf[1], X_train, y_train, X_test))
-                        p.start()
+    results = []
+    for clf in clfs:
+        if use_gpu == 1:
+            p = Process(target=run_train_test, args=(clf[1], X_train, y_train, X_test))
+            p.start()
 
-                        y_pred = Q.get()
+            y_pred = Q.get()
 
-                        y_proba = Q.get()
+            y_proba = Q.get()
 
-                        p.join()
-                    else:
-                        y_pred, y_proba = run_train_test(clf[1], X_train, y_train, X_test)
+            p.join()
+        else:                        
+            y_pred, y_proba = run_train_test(clf[1], X_train, y_train, X_test)
 
-                    results.append([dataset[0], folds[0], clf[0], fold_number, y_test, y_pred, y_proba])
-                    fold_number = fold_number + 1
+        results.append([target[0], clf[0], y_test, y_pred, y_proba])
 
-        saved_results = persist_results.save_results(results)
-        metrics.scores(saved_results)
+    saved_results = persist_results.save_results(results)
+    metrics.scores(saved_results)
 
 
 def main():
@@ -92,9 +96,8 @@ def main():
     os.chdir(dname)
 
     # Define experiments classifiers
-
-    clfs = [('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
-            #('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
+    clfs = [#('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
+            ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
             #('Logistic Regression', auto_lr.instantiate_auto_lr()),
             #('SVM', auto_svm.instantiate_auto_svm()),
             #('MLP', auto_mlp.instantiate_auto_mlp()),
@@ -102,32 +105,20 @@ def main():
             #('FaultNet', auto_faultnet.instantiate_auto_cnn()),
             ]
 
-    # Define experiments splitting strategy
-
-    splits = [#('Kfold', 'kfold'),
-              ('StratifiedKfold', 'stratifiedkfold'),
-              ('GroupKfold by Acquisition', 'groupkfold_acquisition'),
-              #('GroupKfold by Settings', 'groupkfold_settings'),
-              #('GroupKfold by Bearings', 'groupkfold_bearings'),
-              #('GroupKfold by Severity', 'groupkfold_severity'),
-             ]
-
-    # Define number of experiments
-
-    n_experiments = 2
+   
+    
 
     # Define experiments data set
 
     #dataset = ('Paderborn', Paderborn(bearing_names_file="paderborn_bearings.csv", n_aquisitions=20))
     #dataset = ('Paderborn', Paderborn(bearing_names_file="paderborn_bearings_min.csv", n_aquisitions=4))
-    dataset = ('MFPT', MFPT())
+    target = ('MFPT', MFPT())
     #dataset = ('Ottawa', Ottawa())
     #dataset = ('Ottawa', Ottawa(downsample=True))
-    #dataset = ('CWRU', CWRU(bearing_names_file="cwru_bearings.csv"))
+    source = ('CWRU', CWRU(bearing_names_file="cwru_bearings.csv"))
     #dataset = ('CWRU', CWRU(bearing_names_file="cwru_bearings_debug.csv"))
 
-    experimenter(dataset, clfs, splits, n_experiments)
-
+    experimenter(source, target, clfs)
 
 if __name__ == "__main__":
     main()
