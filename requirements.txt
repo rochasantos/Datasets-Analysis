@@ -1,0 +1,8 @@
+patool
+pip-chill
+pyunpack
+rarfile
+scikit-learn
+#tensorflow
+numpy
+PyWavelets

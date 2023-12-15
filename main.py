@@ -5,11 +5,11 @@ from multiprocessing import Process, Queue
 Q = Queue()
 
 from classification_models import auto_knn, auto_random_forest, auto_lr, auto_svm, auto_mlp
-from classification_models import auto_faultnet
-from classification_models import auto_cnn
+#from classification_models import auto_faultnet
+#from classification_models import auto_cnn
 from utils import persist_results, metrics
 import os
-from tensorflow import keras
+#from tensorflow import keras
 import numpy as np
 
 from datasets.mfpt import MFPT
@@ -50,8 +50,6 @@ def run_train_test(classifier, X_train, y_train, X_test):
 
 @timer
 def experimenter(source, target, clfs):
-    print("### Source: ", source[0], "###")
-    print("### Target: ", target[0], "###")
 
     write_in_file("execution_time", f"{target[0]}\n")
     # dataset[1].download()
@@ -59,7 +57,15 @@ def experimenter(source, target, clfs):
     print("Performing Experiments.")
     
     X_train, y_train = source[1].get_acquisitions(1024)
+    print("### Source: ", source[0], "###")
+    print(f"Labels: {set(y_train)}")
+    for label in set(y_train):
+        print((f"{label}: {np.sum(y_train==label)}"))
     X_test, y_test = target[1].get_acquisitions(1024)
+    print("### Target: ", target[0], "###")
+    print(f"Labels: {set(y_test)}")
+    for label in set(y_test):
+        print((f"{label}: {np.sum(y_test==label)}"))
 
     results = []
     for clf in clfs:
