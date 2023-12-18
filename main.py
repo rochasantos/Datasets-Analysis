@@ -56,13 +56,15 @@ def experimenter(source, target, clfs):
 
     print("Performing Experiments.")
     
-    X_train, y_train = source[1].get_acquisitions(1024)
+    X_train, y_train = source[1].load_acquisitions()
     print("### Source: ", source[0], "###")
+    y_train[y_train!='N'] = 'F'
     print(f"Labels: {set(y_train)}")
     for label in set(y_train):
         print((f"{label}: {np.sum(y_train==label)}"))
-    X_test, y_test = target[1].get_acquisitions(1024)
+    X_test, y_test = target[1].load_acquisitions()
     print("### Target: ", target[0], "###")
+    y_test[y_test!='N'] = 'F'
     print(f"Labels: {set(y_test)}")
     for label in set(y_test):
         print((f"{label}: {np.sum(y_test==label)}"))
@@ -110,7 +112,7 @@ def main():
     target = ('MFPT', MFPT())
     #dataset = ('Ottawa', Ottawa())
     #dataset = ('Ottawa', Ottawa(downsample=True))
-    source = ('CWRU', CWRU(bearing_names_file="cwru_bearings.csv"))
+    source = ('CWRU', CWRU())
     #dataset = ('CWRU', CWRU(bearing_names_file="cwru_bearings_debug.csv"))
 
     experimenter(source, target, clfs)
