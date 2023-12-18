@@ -1,0 +1,11 @@
+*** MFPT info data
+signal_data -------------------- (1348, 4096)
+labels size-------------------- 1348
+quantidade de labels {'N': 429, 'IR': 245, 'OR': 674}
+
+
+
+*** CWRU info data
+self.signal_data: (3459, 4096)
+labels size-------------------- 3459
+{'Ball': 812, 'OR': 1421, 'N': 413, 'IR': 813}

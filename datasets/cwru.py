@@ -86,9 +86,7 @@ class CWRU():
         self.rawfilesdir = "cwru_raw"
         #self.url = "http://csegroups.case.edu/sites/default/files/bearingdatacenter/files/Datafiles/"
         self.url = "https://engineering.case.edu/sites/default/files/"
-        self.n_folds = 4
-        self.sample_size = 2048
-        self.n_samples_acquisition = 30
+        self.sample_size = 4096
         self.bearing_names_file = bearing_names_file
         self.bearing_labels, self.bearing_names = self.get_cwru_bearings()
 
@@ -167,86 +165,4 @@ class CWRU():
 
         #print(self.labels)
         #print(self.keys)
-
-
-    def kfold(self):
-
-        if len(self.signal_data) == 0:
-            self.load_acquisitions()
-
-        kf = KFold(n_splits=self.n_folds, shuffle=True, random_state=42)
-
-        for train, test in kf.split(self.signal_data):
-            # print("Train Index: ", train, "Test Index: ", test)
-            yield self.signal_data[train], self.labels[train], self.signal_data[test], self.labels[test]
-
-    def stratifiedkfold(self):
-
-        if len(self.signal_data) == 0:
-            self.load_acquisitions()
-
-        kf = StratifiedShuffleSplit(n_splits=self.n_folds, random_state=42)
-
-        for train, test in kf.split(self.signal_data, self.labels):
-            # print("Train Index: ", train, "Test Index: ", test)
-            yield self.signal_data[train], self.labels[train], self.signal_data[test], self.labels[test]
-
-    def groupkfold_acquisition(self):
-
-        if len(self.signal_data) == 0:
-            self.load_acquisitions()
-
-        groups = []
-        for i in self.keys:
-            groups = np.append(groups, int(i[-1]) % self.n_folds)
-
-        #kf = GroupKFold(n_splits=self.n_folds)
-        kf = GroupShuffleSplit(n_splits=self.n_folds)
-
-        for train, test in kf.split(self.signal_data, self.labels, groups):
-            # print("Train Index: ", train, "Test Index: ", test)
-            yield self.signal_data[train], self.labels[train], self.signal_data[test], self.labels[test]
-
-    def groupkfold_settings(self):
-
-        if len(self.signal_data) == 0:
-            self.load_acquisitions()
-
-        groups = []
-
-        for i in self.keys:
-            load = i[-1]
-            groups = np.append(groups, load)
-
-        #print(self.keys)
-        #print(groups)
-
-        kf = GroupShuffleSplit(n_splits=self.n_folds)
-
-        for train, test in kf.split(self.signal_data, self.labels, groups):
-            # print("Train Index: ", train, "Test Index: ", test)
-            yield self.signal_data[train], self.labels[train], self.signal_data[test], self.labels[test]
-
-    def groupkfold_severity(self):
-
-        if len(self.signal_data) == 0:
-            self.load_acquisitions()
-
-        groups = []
-
-        for i in self.keys:
-            if i[0] == "N":
-                load_severity = str(i[-1])
-            else:
-                load_severity = i[2:5]
-            groups = np.append(groups, load_severity)
-
-        #print(self.keys)
-        #print(groups)
-
-        #kf = GroupKFold(n_splits=self.n_folds)
-        kf = GroupShuffleSplit(n_splits=self.n_folds)
-
-        for train, test in kf.split(self.signal_data, self.labels, groups):
-            # print("Train Index: ", train, "Test Index: ", test)
-            yield self.signal_data[train], self.labels[train], self.signal_data[test], self.labels[test]
+        return self.signal_data, self.labels
