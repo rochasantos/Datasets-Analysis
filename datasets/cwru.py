@@ -161,4 +161,8 @@ class CWRU():
 
         #print(self.labels)
         #print(self.keys)
+    
+    def get_acquisitions(self):
+        if len(self.labels)==0:
+            self.load_acquisitions()
         return self.signal_data, self.labels

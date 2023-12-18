@@ -161,7 +161,6 @@ class MFPT():
         """
         Extracts the acquisitions of each file in the dictionary files_names.
         """
-
         for key in self.files:
             matlab_file = scipy.io.loadmat(self.files[key])
 
@@ -177,4 +176,8 @@ class MFPT():
                 self.labels = np.append(self.labels, key[0])
                 self.keys = np.append(self.keys, key)
 
+        
+    def get_acquisitions(self):
+        if len(self.labels)==0:
+            self.load_acquisitions()
         return self.signal_data, self.labels
