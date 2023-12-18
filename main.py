@@ -17,6 +17,8 @@ from datasets.paderborn import Paderborn
 from datasets.ottawa import Ottawa
 from datasets.cwru import CWRU
 
+from imblearn.combine import SMOTEENN
+
 def write_in_file(file_name, message):
     with open(file_name, 'a') as file:
         file.write(message)
@@ -47,12 +49,18 @@ def experimenter(source, target, clfs):
 
     print("\nPerforming Experiments.")
     
-    X_train, y_train = source[1].get_acquisitions()
+    X_source, y_source = source[1].get_acquisitions()
     print("### Source: ", source[0], "###")
-    y_train[y_train!='N'] = 'F'
-    print(f"Labels: {set(y_train)}")
-    for label in set(y_train):
-        print((f"{label}: {np.sum(y_train==label)}"))
+    y_source[y_source!='N'] = 'F'
+    print(f"Labels: {set(y_source)}")
+    for label in set(y_source):
+        print((f"{label}: {np.sum(y_source==label)}"))
+
+    # smote_enn = SMOTEENN(random_state=0)
+    # X_train, y_train = smote_enn.fit_resample(X_source, y_source)
+    # print("after resampling")
+    # for label in set(y_train):
+    #     print((f"{label}: {np.sum(y_train==label)}"))
         
     X_test, y_test = target[1].get_acquisitions()
     print("### Target: ", target[0], "###")
@@ -79,8 +87,8 @@ def main():
 
     #### Define experiments classifiers
     clfs = [
-            ('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
-            ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
+            # ('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
+            # ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
             ('Logistic Regression', auto_lr.instantiate_auto_lr()),
             # ('SVM', auto_svm.instantiate_auto_svm()),
             # ('MLP', auto_mlp.instantiate_auto_mlp()),
