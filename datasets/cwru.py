@@ -6,13 +6,9 @@ import urllib.request
 import scipy.io
 import numpy as np
 import os
-from sklearn.model_selection import KFold, GroupKFold, StratifiedShuffleSplit, GroupShuffleSplit
 import csv
 import urllib
-import shutil
 import sys
-from urllib.error import URLError, HTTPError, ContentTooShortError
-import socket
 
 # Code to avoid incomplete array results
 np.set_printoptions(threshold=sys.maxsize)

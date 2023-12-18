@@ -109,10 +109,10 @@ def main():
     #### Define experiments data set
     #dataset = ('Paderborn', Paderborn(bearing_names_file="paderborn_bearings.csv", n_aquisitions=20))
     #dataset = ('Paderborn', Paderborn(bearing_names_file="paderborn_bearings_min.csv", n_aquisitions=4))
-    target = ('MFPT', MFPT())
+    source = ('MFPT', MFPT())
     #dataset = ('Ottawa', Ottawa())
     #dataset = ('Ottawa', Ottawa(downsample=True))
-    source = ('CWRU', CWRU())
+    target = ('CWRU', CWRU())
     #dataset = ('CWRU', CWRU(bearing_names_file="cwru_bearings_debug.csv"))
 
     experimenter(source, target, clfs)
