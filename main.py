@@ -49,14 +49,14 @@ def experimenter(source, target, clfs):
     
     X_train, y_train = source[1].get_acquisitions()
     print("### Source: ", source[0], "###")
-    # y_train[y_train!='N'] = 'F'
+    y_train[y_train!='N'] = 'F'
     print(f"Labels: {set(y_train)}")
     for label in set(y_train):
         print((f"{label}: {np.sum(y_train==label)}"))
         
     X_test, y_test = target[1].get_acquisitions()
     print("### Target: ", target[0], "###")
-    # y_test[y_test!='N'] = 'F'
+    y_test[y_test!='N'] = 'F'
     print(f"Labels: {set(y_test)}")
     for label in set(y_test):
         print((f"{label}: {np.sum(y_test==label)}"))
