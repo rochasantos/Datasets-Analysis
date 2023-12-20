@@ -86,7 +86,8 @@ class CWRU():
         self.bearing_names_file = bearing_names_file
         self.bearing_labels, self.bearing_names = self.get_cwru_bearings()
 
-        self.signal_data = np.empty((0, self.sample_size))
+        self.n_channels = 2
+        self.signal_data = np.empty((0, self.sample_size, self.n_channels))
         self.labels = []
         self.keys = []
 
@@ -144,17 +145,19 @@ class CWRU():
 
         for key in self.files:
             matlab_file = scipy.io.loadmat(os.path.join(cwd, self.files[key]))
-            #print(matlab_file.keys())
             acquisition = []
-            for position in ['DE', 'FE', 'BA']:
-                keys = [key for key in matlab_file if key.endswith(position + "_time")]
+            positions = ['DE', 'FE', 'BA']
+            for position in positions[:self.n_channels]:
+                keys = [k for k in matlab_file if k.endswith(position + "_time")]
                 if len(keys) > 0:
                     array_key = keys[0]
-                    acquisition = matlab_file[array_key].reshape(1, -1)[0]
-            #print(acquisition)
-            #acquisition = vibration_data[0]
-            for i in range(len(acquisition)//self.sample_size):
-                sample = acquisition[(i * self.sample_size):((i + 1) * self.sample_size)]
+                    acquisition.append(matlab_file[array_key].reshape(1, -1)[0])
+            if len(acquisition) < self.n_channels:
+                # print('escaping', key, len(acquisition))
+                continue
+            acquisition = np.array(acquisition).T
+            for i in range(acquisition.shape[0]//self.sample_size):
+                sample = acquisition[(i * self.sample_size):((i + 1) * self.sample_size),:]
                 self.signal_data = np.append(self.signal_data, np.array([sample]), axis=0)
                 self.labels = np.append(self.labels, key[0])
                 self.keys = np.append(self.keys, key)

@@ -4,7 +4,7 @@ use_gpu = 0
 from multiprocessing import Process, Queue
 Q = Queue()
 
-from classification_models import auto_knn, auto_random_forest, auto_lr, auto_svm, auto_mlp
+from classification_models import auto_knn, auto_random_forest, auto_lr, auto_svm, auto_mlp, balanced_random_forest
 #from classification_models import auto_faultnet
 #from classification_models import auto_cnn
 import os
@@ -52,21 +52,14 @@ def experimenter(source, target, clfs):
     print("\nPerforming Experiments.")
     
     X_source, y_source = source[1].get_acquisitions()
+    # print(X_source.shape)
     print("### Source: ", source[0], "###")
     y_source[y_source!='N'] = 'F'
     print(f"Labels: {set(y_source)}")
     for label in set(y_source):
         print((f"{label}: {np.sum(y_source==label)}"))
     
-    '''
-    resampler = RandomUnderSampler()
-    X_train, y_train = resampler.fit_resample(X_source, y_source)
-    print("after resampling")
-    for label in set(y_train):
-        print((f"{label}: {np.sum(y_train==label)}"))
-    '''
     X_train, y_train = X_source, y_source
-    #'''
         
     X_test, y_test = target[1].get_acquisitions()
     print("### Target: ", target[0], "###")
@@ -94,7 +87,8 @@ def main():
     #### Define experiments classifiers
     clfs = [
             # ('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
-            ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
+            # ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
+            ('Balanced Random Forest', balanced_random_forest.instantiate_balanced_random_forest()),
             # ('Logistic Regression', auto_lr.instantiate_auto_lr()),
             # ('SVM', auto_svm.instantiate_auto_svm()),
             # ('MLP', auto_mlp.instantiate_auto_mlp()),
@@ -114,7 +108,7 @@ def main():
     # target = ('CWRU', CWRU(bearing_names_file="cwru_bearings_debug.csv"))
 
     experimenter(cwru, mfpt, clfs)
-    experimenter(mfpt, cwru, clfs)
+    # experimenter(mfpt, cwru, clfs)
     
 
 if __name__ == "__main__":
