@@ -26,30 +26,38 @@ np.set_printoptions(threshold=sys.maxsize)
 
 url = "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/cbv7jyx4p9-2.zip"
 
-def download_file(url, sub_path, zip_name):    
+def download_file(url, dir_name, file_name):    
+     
+    full_path = os.path.join(dir_name, file_name)
 
-    home_path = Path.cwd()    
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
 
-    filesize = int(requests.head(url).headers["Content-Length"])
+    # doing download of file
+    with requests.get(url, stream=True) as response, open(full_path, 'wb') as file:
+        file_size = int(response.headers.get('content-length', 0))
+        progress_bar = tqdm(total=file_size, unit='B', unit_scale=True)
 
-    filename = zip_name #os.path.basename(url)
+        for data in response.iter_content(chunk_size=1024):
+            size = file.write(data)
+            progress_bar.update(size)
 
-    os.makedirs(os.path.join(home_path, sub_path), exist_ok=True)
-
-    dl_path = os.path.join(home_path, sub_path, filename)
-    chunk_size = 1024
-
-    with requests.get(url, stream=True) as r, open(dl_path, "wb") as f, tqdm(
-            unit="B",  
-            unit_scale=True,  
-            unit_divisor=1024,  
-            total=filesize,  
-            file=sys.stdout,  
-            desc=filename  
-    ) as progress:
-        for chunk in r.iter_content(chunk_size=chunk_size):
-            datasize = f.write(chunk)
-            progress.update(datasize)
+            # exception handling for KeyboardInterrupt
+            try:
+                progress_bar.refresh()
+            except KeyboardInterrupt:
+                print("Download stopped manually.")
+                progress_bar.close()
+                file.close()
+                os.remove(full_path)
+                raise
 
 
-download_file(url, "experiments", "HUST bearing.zip")
+        progress_bar.close()
+
+    print(f'The file has been downloaded to the : {full_path}')
+
+
+
+
+download_file(url, "hust_raw", "hust_bearing.zip")
