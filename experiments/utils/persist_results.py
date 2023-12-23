@@ -3,6 +3,7 @@ from datetime import datetime
 import csv
 import ast
 import sys
+import os
 
 # Code to avoid error with large results in CSV file
 maxInt = sys.maxsize
@@ -20,15 +21,21 @@ def save_results(results):
 
     now = datetime.now()
     date_time = now.strftime("%Y.%m.%d_%H.%M.%S")
-    result_file_name = date_time + ".csv"
+    file_name = date_time + ".csv"
+    dir_name = 'log'
 
-    with open(result_file_name, 'w', newline="") as csvfile:
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+
+    full_path = os.path.join(dir_name, file_name)
+
+    with open(full_path, 'w', newline="") as csvfile:
         fieldnames = ['dataset', 'classifier', 'y_actual', 'y_pred', 'y_proba']
         writer = csv.writer(csvfile)
         writer.writerow(fieldnames)
         writer.writerows(results)
 
-    return result_file_name
+    return file_name
 
 
 def load_results(file):
