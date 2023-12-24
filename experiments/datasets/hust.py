@@ -26,12 +26,12 @@ np.set_printoptions(threshold=sys.maxsize)
 
 url = "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/cbv7jyx4p9-2.zip"
 
-def download_file(url, dir_name, file_name):    
+def download_file(url, dirname, file_name):    
      
-    full_path = os.path.join(dir_name, file_name)
+    full_path = os.path.join(dirname, file_name)
 
-    if not os.path.exists(dir_name):
-        os.makedirs(dir_name)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
 
     # doing download of file
     with requests.get(url, stream=True) as response, open(full_path, 'wb') as file:
@@ -57,7 +57,40 @@ def download_file(url, dir_name, file_name):
 
     print(f'The file has been downloaded to the : {full_path}')
 
+import re
+
+# extract the data from zip file
+def extract_zip(zip_name, target_dir, relative_path=""):
+    print("Extracting Bearings Data.")
+    
+    if not os.path.exists(zip_name):
+        print(f"Zip file {zip_name} not found.")
+        return
+    
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir, exist_ok=True)
+
+    try:
+        with zipfile.ZipFile(zip_name, 'r') as zip_ref:
+            counter = 0
+            for data in zip_ref.infolist():
+                if data.filename.startswith(relative_path):
+                    zip_ref.extract(data, target_dir)
+                    counter += 1            
+            print(f"{counter} files were extracted.")
+
+        print(f'The file "{relative_path}" was extract from "{zip_name}" to "{target_dir}".')
+    except KeyError:
+        print(f'The file "{relative_path}" not be found in the zip file.')
 
 
+# DATA FOR TEST
+        
+# dirname = "hust_raw"
+# zip_name = "hust_bearing.zip"
+# relative_path = os.path.join("HUST bearing", "HUST bearing dataset")
 
-download_file(url, "hust_raw", "hust_bearing.zip")
+# zip_file_path = os.path.join(dirname, zip_name)
+
+# download_file(url, "hust_raw", "hust_bearing.zip")
+# extract_zip(zip_file_path, "hust_raw", relative_path)
