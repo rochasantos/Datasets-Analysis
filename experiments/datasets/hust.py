@@ -17,6 +17,8 @@ import os
 import sys
 from pathlib import Path
 import requests
+import csv
+import re
 
 # Unpack Tools
 from pyunpack import Archive
@@ -57,7 +59,6 @@ def download_file(url, dirname, file_name):
 
     print(f'The file has been downloaded to the : {full_path}')
 
-import re
 
 # extract the data from zip file
 def extract_zip(zip_name, target_dir, relative_path=""):
@@ -84,13 +85,36 @@ def extract_zip(zip_name, target_dir, relative_path=""):
         print(f'The file "{relative_path}" not be found in the zip file.')
 
 
+
+# creates a metadata file from bearing data files containing the 
+# failure location, bearing type, working condition, and file name.
+def create_csv_file_metadata(data_dir, target_dir):
+    file_names = os.listdir(data_dir)
+    data = [['types of defects ', 'types of bearing', 'working conditions', 'file']]
+    for filename in file_names:
+        match = re.match(r'^([a-zA-Z]+)(\d+)', filename)
+        data.append([match.group(1), match.group(2)[0], match.group(2)[-1], filename])
+    
+    with open(target_dir, mode='w', newline='') as csv_file:
+        csv_writer = csv.writer(csv_file)
+
+        for line in data:
+            csv_writer.writerow(line)
+    
+    print('hust_bearings.csv created successfully.')
+    
+
+
+
 # DATA FOR TEST
         
 # dirname = "hust_raw"
 # zip_name = "hust_bearing.zip"
 # relative_path = os.path.join("HUST bearing", "HUST bearing dataset")
-
 # zip_file_path = os.path.join(dirname, zip_name)
 
 # download_file(url, "hust_raw", "hust_bearing.zip")
 # extract_zip(zip_file_path, "hust_raw", relative_path)
+# create_csv_file_metadata( "hust_raw/HUST bearing/HUST bearing dataset", 
+#                                  "hust_raw/hust_bearings.csv" )
+        
