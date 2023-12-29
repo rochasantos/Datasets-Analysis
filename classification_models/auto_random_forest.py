@@ -5,12 +5,13 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from features_extractors.heterogeneous import Heterogeneous
+from features_extractors.statisticaltime import StatisticalTime
 
 
 def instantiate_auto_random_forest():
 
     rf = Pipeline([
-        ('FeatureExtraction', Heterogeneous()),
+        ('FeatureExtraction', StatisticalTime()),
         ('scaler', StandardScaler()),
         ('rf', RandomForestClassifier()),
     ])
