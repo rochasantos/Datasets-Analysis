@@ -6,15 +6,9 @@ import urllib.request
 import scipy.io
 import numpy as np
 import os
-from sklearn.model_selection import KFold, GroupKFold, StratifiedShuffleSplit, GroupShuffleSplit
 import csv
 import urllib
-import shutil
 import sys
-from urllib.error import URLError, HTTPError, ContentTooShortError
-import socket
-
-from utils import verbose_variables
 
 # Code to avoid incomplete array results
 np.set_printoptions(threshold=sys.maxsize)
@@ -88,7 +82,7 @@ class CWRU():
         self.rawfilesdir = "cwru_raw"
         self.url = "https://engineering.case.edu/sites/default/files/"
         self.sample_size = 4096
-        self.n_samples_acquisitions = 1024
+        # self.n_samples_acquisitions = 1024
         self.bearing_names_file = bearing_names_file
         self.bearing_labels, self.bearing_names = self.get_cwru_bearings()
 
@@ -135,7 +129,7 @@ class CWRU():
         if not os.path.isdir(dirname):
             os.mkdir(dirname)
 
-        print("Downloading MAT files:")
+        print("Downloading MAT files.")
 
         for bearing in self.bearing_names:
             download_file(url, dirname, bearing)
@@ -150,12 +144,14 @@ class CWRU():
 
         for key in self.files:
             matlab_file = scipy.io.loadmat(os.path.join(cwd, self.files[key]))            
+            
             acquisition = []
             for position in ['DE', 'FE', 'BA']:
                 keys = [key for key in matlab_file if key.endswith(position + "_time")]
                 if len(keys) > 0:
                     array_key = keys[0]
                     acquisition = matlab_file[array_key].reshape(1, -1)[0]
+            
             for i in range(len(acquisition)//self.sample_size):
                 sample = acquisition[(i * self.sample_size):((i + 1) * self.sample_size)]
                 self.signal_data = np.append(self.signal_data, np.array([sample]), axis=0)
@@ -171,8 +167,7 @@ class CWRU():
         if not n_samples_acquisitions:
             return self.signal_data, self.labels
 
-        # get the first index of each feature
-        label_names = list(set(self.labels))        
+        label_names = list(set(self.labels)) # types of defects        
         n_samples_per_label = n_samples_acquisitions // len(label_names)
 
         index_list = tuple()
@@ -180,9 +175,5 @@ class CWRU():
             index_list = index_list + (np.where(self.labels == label)[0][:n_samples_per_label],)
         
         indexes = np.concatenate(index_list, axis=0)
-
-        # print('CWRU')
-        # print('labels ----', self.labels[indexes].shape)
-        # print('signal ----', self.signal_data[indexes].shape)
 
         return self.signal_data[indexes], self.labels[indexes]
