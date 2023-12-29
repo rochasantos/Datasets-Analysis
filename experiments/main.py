@@ -16,6 +16,7 @@ from datasets.mfpt import MFPT
 from datasets.paderborn import Paderborn
 from datasets.ottawa import Ottawa
 from datasets.cwru import CWRU
+from datasets.hust import HUST
 
 def write_in_file(file_name, message):
     with open(file_name, 'a') as file:
@@ -23,6 +24,7 @@ def write_in_file(file_name, message):
 
 import time
 import functools
+
 def timer(func):
     @functools.wraps(func)
     def wrapper_timer(*args, **kwargs):
@@ -53,13 +55,18 @@ def experimenter(source, target, clfs):
     print("### Source: ", source[0], "###")
     print("### Target: ", target[0], "###")
 
-    write_in_file("execution_time", f"{target[0]}\n")
-    # dataset[1].download()
+    write_in_file("execution_time", f"{source[0]} x {target[0]}\n")
+    
+    if not os.path.exists(f'./{source[1].rawfilesdir}'):
+        source[1].download()
+
+    if not os.path.exists(f'./{target[1].rawfilesdir}'):
+        target[1].download()
 
     print("Performing Experiments.")
     
-    X_train, y_train = source[1].get_acquisitions(1024)
-    X_test, y_test = target[1].get_acquisitions(1024)
+    X_train, y_train = source[1].get_acquisitions()
+    X_test, y_test = target[1].get_acquisitions()
 
     results = []
     for clf in clfs:
@@ -76,6 +83,7 @@ def experimenter(source, target, clfs):
             y_pred, y_proba = run_train_test(clf[1], X_train, y_train, X_test)
 
         results.append([target[0], clf[0], y_test, y_pred, y_proba])
+        
 
     saved_results = persist_results.save_results(results)
     metrics.scores(saved_results)
@@ -87,28 +95,31 @@ def main():
     os.chdir(dname)
 
     #### Define experiments classifiers
-    clfs = [#('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
-            ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
-            # ('Logistic Regression', auto_lr.instantiate_auto_lr()),
-            # ('SVM', auto_svm.instantiate_auto_svm()),
-            # ('MLP', auto_mlp.instantiate_auto_mlp()),
-            # ('CNN', auto_cnn.instantiate_auto_cnn()),
-            # ('FaultNet', auto_faultnet.instantiate_auto_cnn()),
+    clfs = [('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
+            #('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
+            #('Logistic Regression', auto_lr.instantiate_auto_lr()),
+            #('SVM', auto_svm.instantiate_auto_svm()),
+            #('MLP', auto_mlp.instantiate_auto_mlp()),
+            #('CNN', auto_cnn.instantiate_auto_cnn()),
+            #('FaultNet', auto_faultnet.instantiate_auto_cnn()),
             ]
-   
-    
+       
 
     #### Define experiments data set
-    #dataset = ('Paderborn', Paderborn(bearing_names_file="paderborn_bearings.csv", n_aquisitions=20))
+    # source = ('Paderborn', Paderborn(bearing_names_file="paderborn_bearings.csv", n_aquisitions=20))
     #dataset = ('Paderborn', Paderborn(bearing_names_file="paderborn_bearings_min.csv", n_aquisitions=4))
-    target = ('MFPT', MFPT())
+    # target = ('MFPT', MFPT())
     #dataset = ('Ottawa', Ottawa())
     #dataset = ('Ottawa', Ottawa(downsample=True))
     source = ('CWRU', CWRU(bearing_names_file="cwru_bearings.csv"))
-    #dataset = ('CWRU', CWRU(bearing_names_file="cwru_bearings_debug.csv"))
+    # source = ('CWRU', CWRU(bearing_names_file="cwru_bearings_debug.csv"))
+    # source = ('HUST', HUST(bearing_names_file="hust_bearings.csv"))
 
-    experimenter(source, target, clfs)
+    experimenter(source, source, clfs)
 
 
 if __name__ == "__main__":
     main()
+    
+
+    

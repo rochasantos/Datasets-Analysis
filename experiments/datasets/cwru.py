@@ -77,6 +77,7 @@ class CWRU():
                 bearing_file_names = np.append(bearing_file_names, row[1])
 
         return bearing_label, bearing_file_names
+    
 
     def __init__(self, bearing_names_file="cwru_bearings.csv"):
         self.rawfilesdir = "cwru_raw"
@@ -116,6 +117,11 @@ class CWRU():
             files_path[key] = os.path.join(self.rawfilesdir, bearing)
 
         self.files = files_path
+
+    def showsDescription(self):
+        print("CWRU dataset")
+        print(f"Sample size: {self.sample_size}")
+        print(f"Types of failures: {list(set(self.labels))}")
 
     def download(self):
         """
@@ -157,6 +163,8 @@ class CWRU():
                 self.signal_data = np.append(self.signal_data, np.array([sample]), axis=0)
                 self.labels = np.append(self.labels, key[0])
                 self.keys = np.append(self.keys, key)
+
+        self.showsDescription()
 
 
     def get_acquisitions (self, n_samples_acquisitions=None):

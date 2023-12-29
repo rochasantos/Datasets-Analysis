@@ -40,6 +40,8 @@ def save_results(results):
 
 def load_results(file):
     results = []
+    
+    file = os.path.join('log', file)
     with open(file) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         
@@ -53,14 +55,16 @@ def load_results(file):
             else:                
                 dataset = row[0]
                 classifier = row[1]
-                y_actual = ast.literal_eval(row[2])
                 
-                if len(y_actual) == 1:
-                    y_actual = list(y_actual[0])
-                y_pred = ast.literal_eval(row[3])
-                
-                if len(y_pred) == 1:
-                    y_pred = list(y_pred[0])
+                # y_actual = ast.literal_eval(row[2])
+                y_actual = ast.literal_eval(row[2].replace(" ", ",").replace("\n", ""))
+                # if len(y_actual) == 1:
+                #     y_actual = list(y_actual[0])
+
+                # y_pred = ast.literal_eval(row[3])
+                y_pred = ast.literal_eval(row[3].replace(" ", ",").replace("\n", ""))
+                # if len(y_pred) == 1:
+                #     y_pred = list(y_pred[0])
                 
                 y_proba = row[4]
                 row_results = [dataset, classifier, y_actual, y_pred, y_proba]

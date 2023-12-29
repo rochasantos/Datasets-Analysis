@@ -95,7 +95,7 @@ class MFPT():
         self.rawfilesdir = "mfpt_raw"
         self.url="https://mfpt.org/wp-content/uploads/2020/02/MFPT-Fault-Data-Sets-20200227T131140Z-001.zip"
         self.sample_size = 4096
-        self.n_samples_acquisition = 100  # used for FaultNet
+        # self.n_samples_acquisition = 100
 
         self.signal_data = np.empty((0, self.sample_size))
         self.labels = []

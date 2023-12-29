@@ -151,6 +151,11 @@ class HUST():
         of bearing at 3 working conditions. The sample rate is 51,200 samples per second.
         """
 
+    def showsDescription(self):
+        print("HUST dataset")
+        print(f"Sample size: {self.sample_size}")
+        print(f"Types of failures: {list(set(self.labels))}")
+
 
     def get_hust_bearings(self):
         bearing_file = os.path.join("hust_raw", self.bearing_names_file)
@@ -194,15 +199,7 @@ class HUST():
 
         # get the types of defects
         pattern = r'\b([A-Za-z]+)\.(\d+)\.(\d+)'
-        defects = []
-        for defect in list(self.files.keys()):
-            match = re.search(pattern, defect)
-            defects.append(match.group(1))
 
-        defects = list(set(defects))
-        print("defects: ", defects)
-
-        
         for key in self.files:
             matlab_file = scipy.io.loadmat(os.path.join(cwd, self.files[key]))
             
@@ -212,6 +209,8 @@ class HUST():
             self.labels = np.append(self.labels, defect)
             self.signal_data = np.vstack((self.signal_data, data))
             self.keys = np.append(self.keys, key)       
+
+        self.showsDescription()
 
 
     def get_acquisitions (self, n_samples_acquisitions=None):
