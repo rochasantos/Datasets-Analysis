@@ -22,6 +22,10 @@ from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import SMOTE
 
+from imblearn.combine import SMOTEENN, SMOTETomek
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import SMOTE
+
 def write_in_file(file_name, message):
     with open(file_name, 'a') as file:
         file.write(message)
@@ -48,6 +52,7 @@ def run_train_test(classifier, X_train, y_train, X_test):
 
 @timer
 def experimenter(source, target, clfs):
+
     write_in_file("execution_time", f"{target[0]}\n")
 
     print("\nPerforming Experiments.")
@@ -76,6 +81,7 @@ def experimenter(source, target, clfs):
         labels = list(set(y_train).union(set(y_test)))
         print(labels)
         print(confusion_matrix(y_test, y_pred, labels=labels))
+
 
 def main():
     abspath = os.path.abspath(__file__)

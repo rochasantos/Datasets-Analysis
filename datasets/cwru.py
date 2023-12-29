@@ -84,10 +84,8 @@ class CWRU():
         #self.url = "http://csegroups.case.edu/sites/default/files/bearingdatacenter/files/Datafiles/"
         self.url = "https://engineering.case.edu/sites/default/files/"
         self.sample_size = pow(2, 17)
-        # self.n_samples_acquisitions = 1024
         self.bearing_names_file = bearing_names_file
         self.bearing_labels, self.bearing_names = self.get_cwru_bearings()
-
         self.n_channels = 2
         self.signal_data = np.empty((0, self.sample_size, self.n_channels))
         self.labels = []
@@ -151,8 +149,8 @@ class CWRU():
         cwd = os.getcwd()
 
         for key in self.files:
-            matlab_file = scipy.io.loadmat(os.path.join(cwd, self.files[key]))            
             
+            matlab_file = scipy.io.loadmat(os.path.join(cwd, self.files[key]))
             acquisition = []
             positions = ['DE', 'FE', 'BA']
             for position in positions[:self.n_channels]:
@@ -171,26 +169,7 @@ class CWRU():
                 self.keys = np.append(self.keys, key)
 
         self.showsDescription()
-
-
-    def get_acquisitions (self, n_samples_acquisitions=None):
-
-        if len(self.signal_data) == 0:
-            self.load_acquisitions()
-
-        if not n_samples_acquisitions:
-            return self.signal_data, self.labels
-
-        label_names = list(set(self.labels)) # types of defects        
-        n_samples_per_label = n_samples_acquisitions // len(label_names)
-
-        index_list = tuple()
-        for label in label_names:
-            index_list = index_list + (np.where(self.labels == label)[0][:n_samples_per_label],)
         
-        indexes = np.concatenate(index_list, axis=0)
-
-        return self.signal_data[indexes], self.labels[indexes]
     
     def get_acquisitions(self):
         if len(self.labels)==0:
