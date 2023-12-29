@@ -81,7 +81,7 @@ class CWRU():
     def __init__(self, bearing_names_file="cwru_bearings.csv"):
         self.rawfilesdir = "cwru_raw"
         self.url = "https://engineering.case.edu/sites/default/files/"
-        self.sample_size = 4096
+        self.sample_size = pow(2, 17)
         # self.n_samples_acquisitions = 1024
         self.bearing_names_file = bearing_names_file
         self.bearing_labels, self.bearing_names = self.get_cwru_bearings()
