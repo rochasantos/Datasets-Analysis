@@ -60,24 +60,7 @@ class CWRU():
       Download and extract raw files from CWRU website
     load_acquisitions()
       Extract vibration data from files
-    """
-
-    def get_cwru_bearings(self):
-        # Get bearings to be considered
-
-        bearing_file = os.path.join("datasets", self.bearing_names_file)
-
-        bearing_label = []
-        bearing_file_names = []
-
-        with open(bearing_file, 'r') as fd:
-            reader = csv.reader(fd)
-            for row in reader:
-                bearing_label = np.append(bearing_label, row[0])
-                bearing_file_names = np.append(bearing_file_names, row[1])
-
-        return bearing_label, bearing_file_names
-    
+    """   
 
     def __init__(self, bearing_names_file="cwru_bearings.csv"):
         self.rawfilesdir = "cwru_raw"
@@ -118,11 +101,24 @@ class CWRU():
 
         self.files = files_path
 
-    def showsDescription(self):
-        print("CWRU dataset")
-        print(f"Sample size: {self.sample_size}")
-        print(f"Types of failures: {list(set(self.labels))}")
 
+    def get_cwru_bearings(self):
+        # Get bearings to be considered
+
+        bearing_file = os.path.join("datasets", self.bearing_names_file)
+
+        bearing_label = []
+        bearing_file_names = []
+
+        with open(bearing_file, 'r') as fd:
+            reader = csv.reader(fd)
+            for row in reader:
+                bearing_label = np.append(bearing_label, row[0])
+                bearing_file_names = np.append(bearing_file_names, row[1])
+
+        return bearing_label, bearing_file_names
+
+   
     def download(self):
         """
         Download and extract compressed files from CWRU website.
@@ -132,10 +128,13 @@ class CWRU():
         url = self.url
         dirname = self.rawfilesdir
 
-        if not os.path.isdir(dirname):
-            os.mkdir(dirname)
+        if os.path.exists(dirname) and os.listdir(dirname):
+            print(f"Dataset {self.__name__} has already been downloaded.")
+            return
 
         print("Downloading MAT files.")
+        
+        os.mkdir(dirname)
 
         for bearing in self.bearing_names:
             download_file(url, dirname, bearing)
@@ -168,8 +167,6 @@ class CWRU():
                 self.labels = np.append(self.labels, key[0])
                 self.keys = np.append(self.keys, key)
 
-        self.showsDescription()
-        
     
     def get_acquisitions(self):
         if len(self.labels)==0:

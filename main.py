@@ -44,6 +44,7 @@ def timer(func):
         return value
     return wrapper_timer
 
+
 @timer
 def run_train_test(classifier, X_train, y_train, X_test):
     classifier.fit(X_train, y_train)
@@ -109,6 +110,7 @@ def main():
     #dataset = ('Ottawa', Ottawa(downsample=True))
     cwru = ('CWRU', CWRU())
     # target = ('CWRU', CWRU(bearing_names_file="cwru_bearings_debug.csv"))
+
 
     experimenter(cwru, mfpt, clfs)
     # experimenter(mfpt, cwru, clfs)
