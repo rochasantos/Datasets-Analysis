@@ -172,7 +172,7 @@ class Ottawa():
 
         print("Dataset Loaded.")
 
-    def load_acquisitions(self):
+    def load_acquisitions(self, binary=False):
         """
         Extracts the acquisitions of each file in the dictionary files_names.
         """
@@ -191,7 +191,10 @@ class Ottawa():
             for i in range(len(vibration_data)//self.sample_size):
                 sample = vibration_data[(i * self.sample_size):((i + 1) * self.sample_size)]
                 self.signal_data = np.append(self.signal_data, np.array([sample]), axis=0)
-                self.labels = np.append(self.labels, key[0])
+                if binary and key[0] != 'N' :
+                    self.labels = np.append(self.labels, 'F')
+                else:
+                    self.labels = np.append(self.labels, key[0])
                 self.keys = np.append(self.keys, key)
 
     def kfold(self):
