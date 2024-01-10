@@ -93,23 +93,23 @@ def extract_zip(zip_file_path, target_dir, pattern=r'[A-Z]_\d+_\d+\.mat'):
 
 # creates a metadata file from bearing data files containing the 
 # failure location, bearing type, working condition, and file name.
-# def create_metadata_file(data_dir, target_dir):
-#     file_names = os.listdir(data_dir)
-#     data = [['types of defects ', 'types of bearing', 'working conditions', 'file']]
-#     for filename in file_names:
-#         match = re.match(r'^([a-zA-Z]+)(\d+)', filename)
-#         label = f"{match.group(1)}.620{match.group(2)[0]}.{match.group(2)[-1]}00_W"
-#         data.append([label, filename])
+def create_metadata_file(data_dir, target_dir, pattern=r'([A-Z])_(\d+)_(\d+)\.mat'):
+    file_names = os.listdir(data_dir)
+    data = [["final condition of the bearing", "specific bearing", "condition of the bearing's healthy", "file name"]]
+    for filename in file_names:
+        match = re.match(pattern, filename)
+        label = [match.group(1), match.group(2), match.group(3)]
+        data.append([*label, filename])
     
-#     with open(target_dir, mode='w', newline='') as csv_file:
-#         print("Creating Matadata File...")
+    with open(target_dir, mode='w', newline='') as csv_file:
+        print("Creating Matadata File...")
 
-#         csv_writer = csv.writer(csv_file)
+        csv_writer = csv.writer(csv_file)
 
-#         for line in data:
-#             csv_writer.writerow(line)
+        for line in data:
+            csv_writer.writerow(line)
     
-#     print('Metadata file created successfully.')
+    print('Metadata file created successfully.')
     
 
 class OTTAWA(DatasetBase):
@@ -168,10 +168,10 @@ class OTTAWA(DatasetBase):
         if not os.path.isfile(zip_file_path):
             download_file(self._url, target_dir, zip_file_name)
             extract_zip(zip_file_path, dataset_files_path)
-            # create_metadata_file(dataset_files_path, metadata_file_path)
+            create_metadata_file(dataset_files_path, metadata_file_path)
         else:
-            extract_zip(zip_file_path, dataset_files_path)
-            # create_metadata_file(dataset_files_path, metadata_file_path)
+            # extract_zip(zip_file_path, dataset_files_path)
+            create_metadata_file(dataset_files_path, metadata_file_path)
 
 
     def load_acquisitions(self):
