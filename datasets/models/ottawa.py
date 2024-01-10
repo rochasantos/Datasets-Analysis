@@ -95,11 +95,11 @@ def extract_zip(zip_file_path, target_dir, pattern=r'[A-Z]_\d+_\d+\.mat'):
 # failure location, bearing type, working condition, and file name.
 def create_metadata_file(data_dir, target_dir, pattern=r'([A-Z])_(\d+)_(\d+)\.mat'):
     file_names = os.listdir(data_dir)
-    data = [["final condition of the bearing", "specific bearing", "condition of the bearing's healthy", "file name"]]
+    data = [["label", "file name"]]
     for filename in file_names:
         match = re.match(pattern, filename)
-        label = [match.group(1), match.group(2), match.group(3)]
-        data.append([*label, filename])
+        label = f"{match.group(1)}_{match.group(2)}_{match.group(3)}"
+        data.append([label, filename])
     
     with open(target_dir, mode='w', newline='') as csv_file:
         print("Creating Matadata File...")
@@ -178,17 +178,17 @@ class OTTAWA(DatasetBase):
         """
         Extracts the acquisitions of each file in the dictionary files_names.
         """      
+        
         cwd = os.getcwd()
+        
+        pattern=r'([A-Z])_(\d+)_(\d+)'
 
-        pattern = r'\b([A-Za-z]+)\.(\d+)\.(\d+)'
-
-        self._files_path = self.get_files_path()    
+        self._files_path = self.get_files_path()
         for key in self._files_path:
-            path = os.path.join("datasets/data", self._files_path[key])
+            path = self._files_path[key] 
             matlab_file = scipy.io.loadmat(path)
-            data = matlab_file["data"].reshape(1, -1)[0] [:self._sample_size]
+            data = matlab_file[f"{key}"].reshape(1, -1)[0] [:self._sample_size]
             defect = re.search(pattern, key).group(1)
-            
             self._labels = np.append(self._labels, defect)
             self._signal_data = np.vstack((self._signal_data, data))
             self._keys = np.append(self._keys, key)       

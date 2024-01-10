@@ -55,7 +55,7 @@ def experimenter(source, target, clfs):
     X_source, y_source = source[1].get_acquisitions()
     # print(X_source.shape)
     print("### Source: ", source[0], "###")
-    y_source[y_source!='N'] = 'F'
+    y_source[np.logical_and(y_source!='N', y_source!='H')] = 'F'
     print(f"Labels: {set(y_source)}")
     for label in set(y_source):
         print((f"{label}: {np.sum(y_source==label)}"))
@@ -64,7 +64,7 @@ def experimenter(source, target, clfs):
         
     X_test, y_test = target[1].get_acquisitions()
     print("### Target: ", target[0], "###")
-    y_test[y_test!='N'] = 'F'
+    y_test[np.logical_and(y_test!='N', y_test!='H')] = 'F'
     print(f"Labels: {set(y_test)}")
     for label in set(y_test):
         print((f"{label}: {np.sum(y_test==label)}"))
@@ -108,11 +108,13 @@ def main():
     
 
     # dataset download
-    # hust.download()
-    ottawa[1].download()
+    # hust[1].download()
+    # ottawa[1].download()
+
+    # ottawa[1].load_acquisitions()
 
     # experimenter(hust, mfpt, clfs)
-    # experimenter(mfpt, cwru, clfs)
+    experimenter(ottawa, ottawa, clfs)
     
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ class DatasetBase(ABC):
         self._rawfilesdir: str
         self._metadata_file = f"{self.__class__.__name__.lower()}_bearings.csv"
         self._metadata_dir = f'datasets/dataset_metadata'
-        self._dataset_dir = f'datasets/data/{self.__class__.__name__.lower()}_raw'   
+        self._dataset_dir = f'datasets/data/{self.__class__.__name__.lower()}_raw'
 
         self._sample_size = 4096
         self._signal_data = np.empty((0, self._sample_size))
@@ -46,7 +46,8 @@ class DatasetBase(ABC):
         bearing_labels, bearing_names = self.get_bearings()
         files_path = {}
         for key, bearing in zip(bearing_labels, bearing_names):
-            files_path[key] = os.path.join(self._rawfilesdir, bearing)
+            dataset_files_dir = os.path.join(self._dataset_dir, "dataset_files")
+            files_path[key] = os.path.join(dataset_files_dir, bearing)
         return files_path
 
 
