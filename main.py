@@ -16,6 +16,7 @@ from datasets.mfpt import MFPT
 from datasets.paderborn import Paderborn
 from datasets.cwru import CWRU
 from datasets.models.hust import HUST
+from datasets.models.ottawa import OTTAWA
 
 from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.under_sampling import RandomUnderSampler
@@ -103,11 +104,14 @@ def main():
     mfpt = ('MFPT', MFPT())
     # cwru = ('CWRU', CWRU())
     hust = ('HUST', HUST())
+    ottawa = ('OTTAWA', OTTAWA())
+    
 
     # dataset download
     # hust.download()
+    ottawa[1].download()
 
-    experimenter(hust, mfpt, clfs)
+    # experimenter(hust, mfpt, clfs)
     # experimenter(mfpt, cwru, clfs)
     
 
