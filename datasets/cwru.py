@@ -6,15 +6,9 @@ import urllib.request
 import scipy.io
 import numpy as np
 import os
-from sklearn.model_selection import KFold, GroupKFold, StratifiedShuffleSplit, GroupShuffleSplit
 import csv
 import urllib
-import shutil
 import sys
-from urllib.error import URLError, HTTPError, ContentTooShortError
-import socket
-
-from utils import verbose_variables
 
 # Code to avoid incomplete array results
 np.set_printoptions(threshold=sys.maxsize)
@@ -68,7 +62,7 @@ class CWRU():
       Extract vibration data from files
     """
 
-    def get_cwru_bearings(self):
+    def get_bearings(self):
         # Get bearings to be considered
 
         bearing_file = os.path.join("datasets", self.bearing_names_file)
@@ -86,13 +80,14 @@ class CWRU():
 
     def __init__(self, bearing_names_file="cwru_bearings.csv"):
         self.rawfilesdir = "cwru_raw"
+        #self.url = "http://csegroups.case.edu/sites/default/files/bearingdatacenter/files/Datafiles/"
         self.url = "https://engineering.case.edu/sites/default/files/"
         self.sample_size = 4096
-        self.n_samples_acquisitions = 1024
         self.bearing_names_file = bearing_names_file
-        self.bearing_labels, self.bearing_names = self.get_cwru_bearings()
+        self.bearing_labels, self.bearing_names = self.get_bearings()
 
-        self.signal_data = np.empty((0, self.sample_size))
+        self.n_channels = 2
+        self.signal_data = np.empty((0, self.sample_size, self.n_channels))
         self.labels = []
         self.keys = []
 
@@ -142,54 +137,33 @@ class CWRU():
 
         print("Dataset Loaded.")
 
-    def load_acquisitions(self, binary=False):
+    def load_acquisitions(self):
         """
         Extracts the acquisitions of each file in the dictionary files_names.
         """
         cwd = os.getcwd()
 
         for key in self.files:
-            matlab_file = scipy.io.loadmat(os.path.join(cwd, self.files[key]))            
+            matlab_file = scipy.io.loadmat(os.path.join(cwd, self.files[key]))
             acquisition = []
-            for position in ['DE', 'FE', 'BA']:
-                keys = [key for key in matlab_file if key.endswith(position + "_time")]
+            positions = ['DE', 'FE', 'BA']
+            for position in positions[:self.n_channels]:
+                keys = [k for k in matlab_file if k.endswith(position + "_time")]
                 if len(keys) > 0:
                     array_key = keys[0]
-                    acquisition = matlab_file[array_key].reshape(1, -1)[0]
-            for i in range(len(acquisition)//self.sample_size):
-                sample = acquisition[(i * self.sample_size):((i + 1) * self.sample_size)]
+                    acquisition.append(matlab_file[array_key].reshape(1, -1)[0])
+            if len(acquisition) < self.n_channels:
+                # print('escaping', key, len(acquisition))
+                continue
+            acquisition = np.array(acquisition).T
+            for i in range(acquisition.shape[0]//self.sample_size):
+                sample = acquisition[(i * self.sample_size):((i + 1) * self.sample_size),:]
                 self.signal_data = np.append(self.signal_data, np.array([sample]), axis=0)
-                '''
-                if binary and key[0] != 'N' :
-                    self.labels = np.append(self.labels, 'F')
-                else:
-                    self.labels = np.append(self.labels, key[0])
-                '''
                 self.labels = np.append(self.labels, key[0])
-                #'''
                 self.keys = np.append(self.keys, key)
-
-
-    def get_acquisitions (self, n_samples_acquisitions=None):
-
-        if len(self.signal_data) == 0:
+     
+    
+    def get_acquisitions(self):
+        if len(self.labels)==0:
             self.load_acquisitions()
-
-        if not n_samples_acquisitions:
-            return self.signal_data, self.labels
-
-        # get the first index of each feature
-        label_names = list(set(self.labels))        
-        n_samples_per_label = n_samples_acquisitions // len(label_names)
-
-        index_list = tuple()
-        for label in label_names:
-            index_list = index_list + (np.where(self.labels == label)[0][:n_samples_per_label],)
-        
-        indexes = np.concatenate(index_list, axis=0)
-
-        # print('CWRU')
-        # print('labels ----', self.labels[indexes].shape)
-        # print('signal ----', self.signal_data[indexes].shape)
-
-        return self.signal_data[indexes], self.labels[indexes]
+        return self.signal_data, self.labels

@@ -6,7 +6,6 @@ import urllib.request
 import scipy.io
 import numpy as np
 import os
-from sklearn.model_selection import KFold, GroupKFold, StratifiedShuffleSplit, GroupShuffleSplit
 import shutil
 import zipfile
 import sys
@@ -95,7 +94,6 @@ class MFPT():
         self.rawfilesdir = "mfpt_raw"
         self.url="https://mfpt.org/wp-content/uploads/2020/02/MFPT-Fault-Data-Sets-20200227T131140Z-001.zip"
         self.sample_size = 4096
-        self.n_samples_acquisition = 100  # used for FaultNet
 
         self.signal_data = np.empty((0, self.sample_size))
         self.labels = []
@@ -159,55 +157,27 @@ class MFPT():
 
         print("Dataset Loaded.")
 
-    def load_acquisitions(self, binary=False):
+    def load_acquisitions(self):
         """
         Extracts the acquisitions of each file in the dictionary files_names.
         """
-
         for key in self.files:
             matlab_file = scipy.io.loadmat(self.files[key])
 
-            if len(key) == 8: 
+            if len(key) == 8:
                 vibration_data_raw = matlab_file['bearing'][0][0][1]
-            else: 
+            else:
                 vibration_data_raw = matlab_file['bearing'][0][0][2]
 
             vibration_data = np.array([ elem for singleList in vibration_data_raw for elem in singleList])
-            
             for i in range(len(vibration_data)//self.sample_size):
                 sample = vibration_data[(i * self.sample_size):((i + 1) * self.sample_size)]
                 self.signal_data = np.append(self.signal_data, np.array([sample]), axis=0)
-                '''
-                if binary and key[0] != 'N' :
-                    self.labels = np.append(self.labels, 'F')
-                else:
-                    self.labels = np.append(self.labels, key[0])
-                '''
                 self.labels = np.append(self.labels, key[0])
-                #'''
-                self.keys = np.append(self.keys, key)       
+                self.keys = np.append(self.keys, key)
 
-
-    def get_acquisitions (self, n_samples_acquisitions=None):
-
-        if len(self.signal_data) == 0:
-            self.load_acquisitions()
-
-        if not n_samples_acquisitions:
-            return self.signal_data, self.labels
-
-        # get the first index of each feature
-        label_names = list(set(self.labels))        
-        n_samples_per_label = n_samples_acquisitions // len(label_names)
-
-        index_list = tuple()
-        for label in label_names:
-            index_list = index_list + (np.where(self.labels == label)[0][:n_samples_per_label],)
         
-        indexes = np.concatenate(index_list, axis=0)
-
-        # print('MFPT')
-        # print('labels ----', self.labels[indexes].shape)
-        # print('signal ----', self.signal_data[indexes].shape)
-
-        return self.signal_data[indexes], self.labels[indexes]
+    def get_acquisitions(self):
+        if len(self.labels)==0:
+            self.load_acquisitions()
+        return self.signal_data, self.labels
