@@ -62,7 +62,7 @@ def download_file(url, dirname, file_name, progress_bar=None):
 
 
 # extract the data from zip file
-def extract_zip(zip_file_path, target_dir):
+def extract_zip(zip_file_path, target_dir, pattern=r'[A-Z]_\d+_\d+\.mat'):
     print("Extracting Bearings Data...")
     
     if not os.path.exists(zip_file_path):
@@ -71,33 +71,45 @@ def extract_zip(zip_file_path, target_dir):
     
     if not os.path.exists(target_dir):
         os.makedirs(target_dir, exist_ok=True)
+    
+    regex = re.compile(pattern)
 
+    counter = 0
     with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-        zip_ref.extractall(target_dir)           
+        for file_info in zip_ref.infolist():
+            filename = file_info.filename
+            match = regex.search(filename)
 
-    print(f'The files were extracted into '"{target_dir}"' directory.')
+            if match:
+                matched_part = match.group()
+                output_path = os.path.join(target_dir, matched_part)
+                with open(output_path, 'wb') as output_file:
+                    output_file.write(zip_ref.read(filename))
+                    counter += 1        
+
+    print(f'{counter} files were extracted into {target_dir} directory.')
 
 
 
 # creates a metadata file from bearing data files containing the 
 # failure location, bearing type, working condition, and file name.
-def create_metadata_file(data_dir, target_dir):
-    file_names = os.listdir(data_dir)
-    data = [['types of defects ', 'types of bearing', 'working conditions', 'file']]
-    for filename in file_names:
-        match = re.match(r'^([a-zA-Z]+)(\d+)', filename)
-        label = f"{match.group(1)}.620{match.group(2)[0]}.{match.group(2)[-1]}00_W"
-        data.append([label, filename])
+# def create_metadata_file(data_dir, target_dir):
+#     file_names = os.listdir(data_dir)
+#     data = [['types of defects ', 'types of bearing', 'working conditions', 'file']]
+#     for filename in file_names:
+#         match = re.match(r'^([a-zA-Z]+)(\d+)', filename)
+#         label = f"{match.group(1)}.620{match.group(2)[0]}.{match.group(2)[-1]}00_W"
+#         data.append([label, filename])
     
-    with open(target_dir, mode='w', newline='') as csv_file:
-        print("Creating Matadata File...")
+#     with open(target_dir, mode='w', newline='') as csv_file:
+#         print("Creating Matadata File...")
 
-        csv_writer = csv.writer(csv_file)
+#         csv_writer = csv.writer(csv_file)
 
-        for line in data:
-            csv_writer.writerow(line)
+#         for line in data:
+#             csv_writer.writerow(line)
     
-    print('Metadata file created successfully.')
+#     print('Metadata file created successfully.')
     
 
 class OTTAWA(DatasetBase):
@@ -144,21 +156,21 @@ class OTTAWA(DatasetBase):
 
         if not target_dir:
             target_dir = self._dataset_dir
+            print(f"target_dir value is: {target_dir}")
        
         zip_file_name = "ottawa_bearing.zip"
-        # relative_path = "HUST bearing/HUST bearing dataset"
+        dataset_files_dir = "dataset_files"
 
         zip_file_path = os.path.join(target_dir, zip_file_name)
-        # dataset_files_path = os.path.join(target_dir, relative_path)
-        # metadata_file_path = os.path.join(self._metadata_dir, self._metadata_file)
+        dataset_files_path = os.path.join(target_dir, dataset_files_dir)
+        metadata_file_path = os.path.join(self._metadata_dir, self._metadata_file)
 
         if not os.path.isfile(zip_file_path):
             download_file(self._url, target_dir, zip_file_name)
-            # extract_zip(zip_file_path, target_dir)
+            extract_zip(zip_file_path, dataset_files_path)
             # create_metadata_file(dataset_files_path, metadata_file_path)
         else:
-            pass
-            # extract_zip(zip_file_path, target_dir)
+            extract_zip(zip_file_path, dataset_files_path)
             # create_metadata_file(dataset_files_path, metadata_file_path)
 
 
