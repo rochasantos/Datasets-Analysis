@@ -180,11 +180,11 @@ class OTTAWA(DatasetBase):
 
         self._files_path = self.get_files_path()
         for key in self._files_path:
-            path = self._files_path[key] 
+            path = self._files_path[key]
             matlab_file = scipy.io.loadmat(path)
-            data = matlab_file[f"{key}"].reshape(1, -1)[0] [:self._sample_size]
-            defect = re.search(pattern, key).group(1)
-            self._labels = np.append(self._labels, defect)
+            data = matlab_file[key.split(',')[0]].reshape(1, -1)[0] [:self._sample_size]
+            label = re.search(pattern, key).group(1)
+            self._labels = np.append(self._labels, label)
             self._signal_data = np.vstack((self._signal_data, data))
             self._keys = np.append(self._keys, key)       
 

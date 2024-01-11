@@ -56,7 +56,7 @@ class DatasetBase(ABC):
 
 
     def get_bearings(self):
-        metadata_file_path = os.path.join(self._metadata_dir, self._metadata_file)
+        metadata_file_path = os.path.join(self._dataset_dir, self._metadata_file)
         bearing_label = []
         bearing_file_names = []
 
@@ -64,9 +64,8 @@ class DatasetBase(ABC):
             reader = csv.reader(fd)
             next(reader) # skip the first line which is the header
             for row in reader:
-                bearing_label = np.append(bearing_label, row[0])
-                bearing_file_names = np.append(bearing_file_names, row[1])
-
+                bearing_label = np.append(bearing_label, ','.join(row))
+                bearing_file_names = np.append(bearing_file_names, row[-1])
         return bearing_label, bearing_file_names
 
     

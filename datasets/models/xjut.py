@@ -26,6 +26,8 @@ from io import BytesIO
 import patoolib
 import rarfile
 
+import pandas as pd
+
 from .dataset_base import DatasetBase
 
 
@@ -68,16 +70,6 @@ def download_file(url, dirname, file_name, progress_bar=None):
 
 
 # extract the data from zip file
-
-
-def merge_rar(path_rar, target_dir):   
-
-    rf = rarfile.RarFile(path_rar)
-    for f in rf.infolist():
-        print(f.filename, f.file_size)
-        if f.filename == "README":
-            print(rf.read(f))
-
 def extract_rar(rar_file_path, target_dir, pattern=r'([^/]+\.csv)$'):
     print("Extracting and merging Bearings Data...")
 
@@ -91,42 +83,64 @@ def extract_rar(rar_file_path, target_dir, pattern=r'([^/]+\.csv)$'):
     regex = re.compile(pattern)
 
     # Extração
-    counter = 0
+    filename_list = []
     with rarfile.RarFile(rar_file_path, "r") as rar_ref:
         for file_info in rar_ref.infolist():
             filename = file_info.filename
-            print("filename:::::", filename)
-            
-            match = regex.search(filename)
+            file_size = file_info.file_size
+            filename_list.append(filename)
 
+        for filename in tqdm(filename_list, desc="Extracting CSV files", unit="file"):
+            match = regex.search(filename)
             if match:
                 matched_part = match.group()
                 output_path = os.path.join(target_dir, matched_part)
-                with open(output_path, 'wb') as output_file:
-                    output_file.write(rar_ref.read(filename))
-                    counter += 1
+                if not os.path.exists(output_path):
+                    with open(output_path, 'wb') as output_file:
+                        output_file.write(rar_ref.read(filename))
 
-    print(f'{counter} files were extracted into {target_dir} directory.')
+    print(f'{len(filename_list)} files were extracted into {target_dir} directory.')
 
 
 
-# def create_metadata_file(filename_list, target_dir, header=["label", "file"] pattern=r'([A-Z])_(\d+)_(\d+)\.mat'):
+def generate_metadata(files_path, output_dir, header=["label", "file"], pattern=r'/(\d+Hz)(\d+kN)/([^/]+)/([^/]+)$'):
 
-#     data = [header]
-#     for filename in filename_list:
-#         match = re.match(pattern, filename)
-#         label = f"{match.group(1)}_{match.group(2)}_{match.group(3)}"
-#         data.append([label, filename])
+    detail_info = {
+            "O": ["Bearing1_1", "Bearing1_2", "Bearing1_3", "Bearing2_2", "Bearing2_4", "Bearing2_5", "Bearing3_1", "Bearing3_5"],
+            "I": ["Bearing2_1", "Bearing3_3", "Bearing3_4"],
+            "C": ["Bearing1_4", "Bearing2_3"],
+            "IO": ["Bearing1_5"],
+            "IOCB": ["Bearing3_2"]        
+        }
+
+    pattern = re.compile(pattern)
+
+    filename_list = os.listdir(files_path)
+    print("len of list:::::::::::", len(filename_list))
+
+    data = [header]
+
+    for filename in filename_list:
+        match = pattern.search(filename)
+        if match:
+            info = list(match.groups())
+            
+            for key, value in detail_info.items():
+                if info[2] in value:
+                    info[2] = key
+            
+            data.append(info)
     
-#     with open(target_dir, mode='w', newline='') as csv_file:
-#         print("Creating Matadata File...")
+    metadata_path = os.path.join(output_dir, "xjut_bearings.csv")
+    with open(metadata_path, mode='w', newline='') as csv_file:
+        print("Creating Matadata File...")
 
-#         csv_writer = csv.writer(csv_file)
+        csv_writer = csv.writer(csv_file)
 
-#         for line in data:
-#             csv_writer.writerow(line)
+        for line in data:
+            csv_writer.writerow(line)
     
-#     print('Metadata file created successfully.')
+    print('Metadata file created successfully.')
     
 
 class XJUT(DatasetBase):
@@ -178,42 +192,39 @@ class XJUT(DatasetBase):
             target_dir = self._dataset_dir
             print(f"target_dir value is: {target_dir}")
        
-        zip_file_name = f"{self.dataset_name}_bearing.rar"
         dataset_files_dir = f"{self.dataset_name}_bearing"
 
         dataset_files_path = os.path.join(target_dir, dataset_files_dir)
-        metadata_file_path = os.path.join(self._dataset_dir, self._metadata_file)
         rar_file_path = os.path.join(target_dir, f"{self.dataset_name}_bearing.part01.rar")
 
+        # Download
         n = 1
         for url in urls:
             rar_filename = f"{self.dataset_name}_bearing.part0{n}.rar"
             if not os.path.exists(os.path.join(target_dir, rar_filename)):
                 download_file(url, target_dir, rar_filename)
             n += 1
-            
+
+        # Extract
         extract_rar(rar_file_path, dataset_files_path)
-        # merge_rar_parts(rar_file_path)
-        # extract_and_merge_rar(rar_file_path, dataset_files_path)
-        # create_metadata_file(dataset_files_path, metadata_file_path)       
+        generate_metadata(dataset_files_path, os.path.dirname(target_dir), header=["frequency", "load", "fault element", "file"])
 
 
     def load_acquisitions(self):
         """
         Extracts the acquisitions of each file in the dictionary files_names.
-        """      
-        
-        cwd = os.getcwd()
-        
-        pattern=r'([A-Z])_(\d+)_(\d+)'
-
+        """   
+      
+        pattern = re.compile(r'[^,]+')
         self._files_path = self.get_files_path()
+        print("Loading data...")
         for key in self._files_path:
-            path = self._files_path[key] 
-            matlab_file = scipy.io.loadmat(path)
-            data = matlab_file[f"{key}"].reshape(1, -1)[0] [:self._sample_size]
-            defect = re.search(pattern, key).group(1)
-            self._labels = np.append(self._labels, defect)
+            path = self._files_path[key]
+            df = pd.read_csv(path)
+            data_dict = {col: np.array(df[col]) for col in df.columns}
+            data = data_dict["Horizontal_vibration_signals"].reshape(1, -1)[0] [:self._sample_size]
+            label = pattern.findall(key)[2]
+            self._labels = np.append(self._labels, label)
             self._signal_data = np.vstack((self._signal_data, data))
-            self._keys = np.append(self._keys, key)       
+            self._keys = np.append(self._keys, label)       
 

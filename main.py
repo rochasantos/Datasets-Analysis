@@ -6,15 +6,14 @@ from multiprocessing import Process, Queue
 Q = Queue()
 
 from classification_models import auto_knn, auto_random_forest, auto_lr, auto_svm, auto_mlp, balanced_random_forest
-#from classification_models import auto_faultnet
-#from classification_models import auto_cnn
+from classification_models import auto_faultnet
+from classification_models import auto_cnn
 import os
-#from tensorflow import keras
+from tensorflow import keras
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 
 from datasets.mfpt import MFPT
-from datasets.paderborn import Paderborn
 from datasets.cwru import CWRU
 from datasets.models.hust import HUST
 from datasets.models.ottawa import OTTAWA
@@ -30,6 +29,8 @@ def write_in_file(file_name, message):
 
 import time
 import functools
+
+
 def timer(func):
     @functools.wraps(func)
     def wrapper_timer(*args, **kwargs):
@@ -41,14 +42,22 @@ def timer(func):
         return value
     return wrapper_timer
 
+
 @timer
 def run_train_test(classifier, X_train, y_train, X_test):
     classifier.fit(X_train, y_train)
     y_pred = classifier.predict(X_test)
     return y_pred
 
+
 def get_acquisitions(dataset, domain, healthy_labels=['N', 'H']):
-    X, y = dataset[1].get_acquisitions()
+    X, y = None, None
+
+    if type(dataset).__name__ == 'list':
+        X, y = merge_datasets(dataset)
+    else:
+        X, y = dataset[1].get_acquisitions()
+    
     print(f"### {domain}: ", dataset[0], "###")
     y = np.where(np.isin(y, healthy_labels), 'N', 'F')
     print(f"Labels: {set(y)}")
@@ -57,16 +66,30 @@ def get_acquisitions(dataset, domain, healthy_labels=['N', 'H']):
     
     return X, y
 
+
+def merge_datasets(datasets):
+    X1, y1 = datasets[0][1].get_acquisitions()
+    X2, y2 = datasets[1][1].get_acquisitions()
+    
+    y1 = np.append(y1, y2)
+    X1 = np.vstack((X1, X2))
+
+    return X1, y1
+
+
 @timer
 def experimenter(source, target, clfs):
-    print('*****************************************************')
 
     write_in_file("execution_time", f"{target[0]}\n")
 
     print("\nPerforming Experiments.")
     
-    X_train, y_train = get_acquisitions(source, 'Source')        
+    X_train, y_train = get_acquisitions(source, 'Source')       
     X_test, y_test = get_acquisitions(target, 'Target')
+    print("x_train and y_train")
+    print(X_train.shape, y_train.shape)
+    print("x_test and y_test")
+    print(X_test.shape, y_test.shape)
     
     for clf in clfs:
         y_pred = run_train_test(clf[1], X_train, y_train, X_test)
@@ -77,47 +100,42 @@ def experimenter(source, target, clfs):
         print(labels)
         print(confusion_matrix(y_test, y_pred, labels=labels))
 
-    print('*****************************************************')
-
 
 def main():
+
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     os.chdir(dname)
 
+
     #### Define experiments classifiers
     clfs = [
-            # ('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
-            # ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
+            ('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
+            ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
             ('Balanced Random Forest', balanced_random_forest.instantiate_balanced_random_forest()),
-            # ('Logistic Regression', auto_lr.instantiate_auto_lr()),
-            # ('SVM', auto_svm.instantiate_auto_svm()),
-            # ('MLP', auto_mlp.instantiate_auto_mlp()),
-            # ('CNN', auto_cnn.instantiate_auto_cnn()),
-            # ('FaultNet', auto_faultnet.instantiate_auto_cnn()),
+            ('Logistic Regression', auto_lr.instantiate_auto_lr()),
+            ('SVM', auto_svm.instantiate_auto_svm()),
+            ('MLP', auto_mlp.instantiate_auto_mlp()),
+            ('CNN', auto_cnn.instantiate_auto_cnn()),
+            ('FaultNet', auto_faultnet.instantiate_auto_cnn()),
             ]
-   
-    
+       
 
     #### Define experiments data set
-    # paderborn = ('Paderborn', Paderborn(bearing_names_file="paderborn_bearings.csv", n_aquisitions=20))
     mfpt = ('MFPT', MFPT())
     cwru = ('CWRU', CWRU())
     hust = ('HUST', HUST())
     ottawa = ('OTTAWA', OTTAWA())
     xjut = ('XJUT', XJUT())
     
-
-    # dataset download
     # hust[1].download()
-    # ottawa[1].download()
-    xjut[1].download()
-
+    
     # ottawa[1].load_acquisitions()
 
-    # experimenter(hust, mfpt, clfs)
+    experimenter(hust, mfpt, clfs)
     # experimenter(cwru, ottawa, clfs)
-    
+    # experimenter(ottawa, hust, clfs)
+   
 
 if __name__ == "__main__":
     main()
