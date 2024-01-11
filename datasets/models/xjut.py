@@ -105,7 +105,7 @@ def extract_rar(rar_file_path, target_dir, pattern=r'([^/]+\.csv)$'):
 
 def generate_metadata(files_path, output_dir, header=["label", "file"], pattern=r'/(\d+Hz)(\d+kN)/([^/]+)/([^/]+)$'):
 
-    detail_info = {
+    map = {
             "O": ["Bearing1_1", "Bearing1_2", "Bearing1_3", "Bearing2_2", "Bearing2_4", "Bearing2_5", "Bearing3_1", "Bearing3_5"],
             "I": ["Bearing2_1", "Bearing3_3", "Bearing3_4"],
             "C": ["Bearing1_4", "Bearing2_3"],
@@ -125,7 +125,7 @@ def generate_metadata(files_path, output_dir, header=["label", "file"], pattern=
         if match:
             info = list(match.groups())
             
-            for key, value in detail_info.items():
+            for key, value in map.items():
                 if info[2] in value:
                     info[2] = key
             

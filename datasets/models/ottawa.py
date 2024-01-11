@@ -173,9 +173,7 @@ class OTTAWA(DatasetBase):
         """
         Extracts the acquisitions of each file in the dictionary files_names.
         """      
-        
-        cwd = os.getcwd()
-        
+                
         pattern=r'([A-Z])_(\d+)_(\d+)'
 
         self._files_path = self.get_files_path()
