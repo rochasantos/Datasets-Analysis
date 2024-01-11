@@ -1,3 +1,4 @@
+import inspect
 
 # Change variable use_gpu to 1 when using GPU
 use_gpu = 0
@@ -17,6 +18,7 @@ from datasets.paderborn import Paderborn
 from datasets.cwru import CWRU
 from datasets.models.hust import HUST
 from datasets.models.ottawa import OTTAWA
+from datasets.models.xjut import XJUT
 
 from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.under_sampling import RandomUnderSampler
@@ -45,30 +47,27 @@ def run_train_test(classifier, X_train, y_train, X_test):
     y_pred = classifier.predict(X_test)
     return y_pred
 
+def get_acquisitions(dataset, domain, healthy_labels=['N', 'H']):
+    X, y = dataset[1].get_acquisitions()
+    print(f"### {domain}: ", dataset[0], "###")
+    y = np.where(np.isin(y, healthy_labels), 'N', 'F')
+    print(f"Labels: {set(y)}")
+    for label in set(y):
+        print((f"{label}: {np.sum(y==label)}"))
+    
+    return X, y
+
 @timer
 def experimenter(source, target, clfs):
+    print('*****************************************************')
 
     write_in_file("execution_time", f"{target[0]}\n")
 
     print("\nPerforming Experiments.")
     
-    X_source, y_source = source[1].get_acquisitions()
-    # print(X_source.shape)
-    print("### Source: ", source[0], "###")
-    y_source[np.logical_and(y_source!='N', y_source!='H')] = 'F'
-    print(f"Labels: {set(y_source)}")
-    for label in set(y_source):
-        print((f"{label}: {np.sum(y_source==label)}"))
+    X_train, y_train = get_acquisitions(source, 'Source')        
+    X_test, y_test = get_acquisitions(target, 'Target')
     
-    X_train, y_train = X_source, y_source
-        
-    X_test, y_test = target[1].get_acquisitions()
-    print("### Target: ", target[0], "###")
-    y_test[np.logical_and(y_test!='N', y_test!='H')] = 'F'
-    print(f"Labels: {set(y_test)}")
-    for label in set(y_test):
-        print((f"{label}: {np.sum(y_test==label)}"))
-
     for clf in clfs:
         y_pred = run_train_test(clf[1], X_train, y_train, X_test)
         print("\n", clf[0])
@@ -78,6 +77,7 @@ def experimenter(source, target, clfs):
         print(labels)
         print(confusion_matrix(y_test, y_pred, labels=labels))
 
+    print('*****************************************************')
 
 
 def main():
@@ -102,19 +102,21 @@ def main():
     #### Define experiments data set
     # paderborn = ('Paderborn', Paderborn(bearing_names_file="paderborn_bearings.csv", n_aquisitions=20))
     mfpt = ('MFPT', MFPT())
-    # cwru = ('CWRU', CWRU())
+    cwru = ('CWRU', CWRU())
     hust = ('HUST', HUST())
     ottawa = ('OTTAWA', OTTAWA())
+    xjut = ('XJUT', XJUT())
     
 
     # dataset download
     # hust[1].download()
     # ottawa[1].download()
+    xjut[1].download()
 
     # ottawa[1].load_acquisitions()
 
     # experimenter(hust, mfpt, clfs)
-    experimenter(ottawa, ottawa, clfs)
+    # experimenter(cwru, ottawa, clfs)
     
 
 if __name__ == "__main__":

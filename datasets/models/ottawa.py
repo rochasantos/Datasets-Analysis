@@ -62,7 +62,7 @@ def download_file(url, dirname, file_name, progress_bar=None):
 
 
 # extract the data from zip file
-def extract_zip(zip_file_path, target_dir, pattern=r'[A-Z]_\d+_\d+\.mat'):
+def extract_zip(zip_file_path, target_dir, pattern=r'([^/]+\.mat)$'):
     print("Extracting Bearings Data...")
     
     if not os.path.exists(zip_file_path):
@@ -90,10 +90,8 @@ def extract_zip(zip_file_path, target_dir, pattern=r'[A-Z]_\d+_\d+\.mat'):
     print(f'{counter} files were extracted into {target_dir} directory.')
 
 
-
-# creates a metadata file from bearing data files containing the 
-# failure location, bearing type, working condition, and file name.
 def create_metadata_file(data_dir, target_dir, pattern=r'([A-Z])_(\d+)_(\d+)\.mat'):
+
     file_names = os.listdir(data_dir)
     data = [["label", "file name"]]
     for filename in file_names:
@@ -144,10 +142,7 @@ class OTTAWA(DatasetBase):
 
     def __init__(self):
         self._url = "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/y2px5tg92h-4.zip"        
-        self._rawfilesdir = "ottawa_raw"             
-
-        super().__init__()
-   
+        super().__init__()   
 
     def download(self, target_dir=None):
         """
@@ -158,19 +153,19 @@ class OTTAWA(DatasetBase):
             target_dir = self._dataset_dir
             print(f"target_dir value is: {target_dir}")
        
-        zip_file_name = "ottawa_bearing.zip"
-        dataset_files_dir = "dataset_files"
+        zip_file_name = f"{self.dataset_name}_bearing.zip"
+        dataset_files_dir = f"{self.dataset_name}_bearing"
 
         zip_file_path = os.path.join(target_dir, zip_file_name)
         dataset_files_path = os.path.join(target_dir, dataset_files_dir)
-        metadata_file_path = os.path.join(self._metadata_dir, self._metadata_file)
+        metadata_file_path = os.path.join(self._dataset_dir, self._metadata_file)
 
         if not os.path.isfile(zip_file_path):
             download_file(self._url, target_dir, zip_file_name)
             extract_zip(zip_file_path, dataset_files_path)
             create_metadata_file(dataset_files_path, metadata_file_path)
         else:
-            # extract_zip(zip_file_path, dataset_files_path)
+            extract_zip(zip_file_path, dataset_files_path)
             create_metadata_file(dataset_files_path, metadata_file_path)
 
 

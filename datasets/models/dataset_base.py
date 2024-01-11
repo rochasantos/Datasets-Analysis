@@ -9,9 +9,9 @@ class DatasetBase(ABC):
 
     def __init__(self):
         self._url: str
-        
-        self._rawfilesdir: str
-        self._metadata_file = f"{self.__class__.__name__.lower()}_bearings.csv"
+        self._dataset_name = self.__class__.__name__.lower()
+        self._rawfilesdir = f"{self.dataset_name}_raw"
+        self._metadata_file = f"{self._dataset_name}_bearings.csv"
         self._metadata_dir = f'datasets/dataset_metadata'
         self._dataset_dir = f'datasets/data/{self.__class__.__name__.lower()}_raw'
 
@@ -22,7 +22,11 @@ class DatasetBase(ABC):
         
         self._files_path = None
         
-    
+
+    @property
+    def dataset_name(self):
+        return self._dataset_name
+
     @property
     def url(self):
         return self._url
@@ -46,7 +50,7 @@ class DatasetBase(ABC):
         bearing_labels, bearing_names = self.get_bearings()
         files_path = {}
         for key, bearing in zip(bearing_labels, bearing_names):
-            dataset_files_dir = os.path.join(self._dataset_dir, "dataset_files")
+            dataset_files_dir = os.path.join(self._dataset_dir, f"{self.dataset_name}_bearing")
             files_path[key] = os.path.join(dataset_files_dir, bearing)
         return files_path
 
