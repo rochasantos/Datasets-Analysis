@@ -6,10 +6,10 @@ from multiprocessing import Process, Queue
 Q = Queue()
 
 from classification_models import auto_knn, auto_random_forest, auto_lr, auto_svm, auto_mlp, balanced_random_forest
-from classification_models import auto_faultnet
-from classification_models import auto_cnn
+# from classification_models import auto_faultnet
+# from classification_models import auto_cnn
 import os
-from tensorflow import keras
+# from tensorflow import keras
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 
@@ -53,10 +53,10 @@ def run_train_test(classifier, X_train, y_train, X_test):
 def get_acquisitions(dataset, domain, healthy_labels=['N', 'H']):
     X, y = None, None
 
-    if type(dataset).__name__ == 'list':
-        X, y = merge_datasets(dataset)
+    if len(dataset) == 1:
+        X, y = dataset[0][1].get_acquisitions()
     else:
-        X, y = dataset[1].get_acquisitions()
+        X, y = merge_datasets(dataset)
     
     print(f"### {domain}: ", dataset[0], "###")
     y = np.where(np.isin(y, healthy_labels), 'N', 'F')
@@ -86,10 +86,6 @@ def experimenter(source, target, clfs):
     
     X_train, y_train = get_acquisitions(source, 'Source')       
     X_test, y_test = get_acquisitions(target, 'Target')
-    print("x_train and y_train")
-    print(X_train.shape, y_train.shape)
-    print("x_test and y_test")
-    print(X_test.shape, y_test.shape)
     
     for clf in clfs:
         y_pred = run_train_test(clf[1], X_train, y_train, X_test)
@@ -110,29 +106,41 @@ def main():
 
     #### Define experiments classifiers
     clfs = [
-            ('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
-            ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
+            # ('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
+            # ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
             ('Balanced Random Forest', balanced_random_forest.instantiate_balanced_random_forest()),
-            ('Logistic Regression', auto_lr.instantiate_auto_lr()),
-            ('SVM', auto_svm.instantiate_auto_svm()),
-            ('MLP', auto_mlp.instantiate_auto_mlp()),
-            ('CNN', auto_cnn.instantiate_auto_cnn()),
-            ('FaultNet', auto_faultnet.instantiate_auto_cnn()),
+            # ('Logistic Regression', auto_lr.instantiate_auto_lr()),
+            # ('SVM', auto_svm.instantiate_auto_svm()),
+            # ('MLP', auto_mlp.instantiate_auto_mlp()),
+            # ('CNN', auto_cnn.instantiate_auto_cnn()),
+            # ('FaultNet', auto_faultnet.instantiate_auto_cnn()),
             ]
        
 
     #### Define experiments data set
-    mfpt = ('MFPT', MFPT())
-    cwru = ('CWRU', CWRU())
-    hust = ('HUST', HUST())
-    ottawa = ('OTTAWA', OTTAWA())
-    xjut = ('XJUT', XJUT())
     
+    source = [
+        ('MFPT', MFPT()),
+        # ('CWRU', CWRU()),
+        ('HUST', HUST()),
+        # ('OTTAWA', OTTAWA()),
+        # ('XJUT', XJUT())
+    ]
+
+    target = [
+        ('MFPT', MFPT()),
+        # ('CWRU', CWRU()),
+        # ('HUST', HUST()),
+        # ('OTTAWA', OTTAWA()),
+        # ('XJUT', XJUT())
+    ]
+
+
     # hust[1].download()
     
     # ottawa[1].load_acquisitions()
 
-    experimenter(hust, mfpt, clfs)
+    experimenter(source, target, clfs)
     # experimenter(cwru, ottawa, clfs)
     # experimenter(ottawa, hust, clfs)
    
