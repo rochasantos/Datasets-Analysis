@@ -9,11 +9,12 @@ class DatasetBase(ABC):
 
     def __init__(self):
         self._url: str
-        self._dataset_name = self.__class__.__name__.lower()
-        self._rawfilesdir = f"{self.dataset_name}_raw"
-        self._metadata_file = f"{self._dataset_name}_bearings.csv"
-        self._metadata_dir = f'datasets/dataset_metadata'
-        self._dataset_dir = f'datasets/data/{self.__class__.__name__.lower()}_raw'
+        self._name = self.__class__.__name__.lower()
+        self._dataset_dir = f"datasets/data/{self._name}"
+        self._raw_data_dir = os.path.join(self._dataset_dir, f"{self._name}_raw")
+        self._metadata_path = os.path.join(self._dataset_dir, f"{self._name}_bearings.csv")
+        zip_file_path = os.path.join(self._dataset_dir, f"{self._name}_bearings.zip")
+        rar_file_path = os.path.join(self._dataset_dir, f"{self._name}_bearings.rar")
 
         self._sample_size = 4096
         self._signal_data = np.empty((0, self._sample_size))
@@ -24,17 +25,25 @@ class DatasetBase(ABC):
         
 
     @property
-    def dataset_name(self):
-        return self._dataset_name
+    def url(self):
+        return self._url    
 
     @property
-    def url(self):
-        return self._url
+    def name(self):
+        return self._name
     
     @property
-    def bearing_names_file(self):
-        return self._bearing_names_file
+    def dataset_dir(self):
+        return self._dataset_dir
     
+    @property
+    def raw_data_dir(self):
+        return self._raw_data_dir
+    
+    @property
+    def metadata_path(self):
+        return self._metadata_path
+      
     
     @abstractmethod
     def download(self):
@@ -50,17 +59,16 @@ class DatasetBase(ABC):
         bearing_labels, bearing_names = self.get_bearings()
         files_path = {}
         for key, bearing in zip(bearing_labels, bearing_names):
-            dataset_files_dir = os.path.join(self._dataset_dir, f"{self.dataset_name}_bearing")
+            dataset_files_dir = self._raw_data_dir
             files_path[key] = os.path.join(dataset_files_dir, bearing)
         return files_path
 
 
     def get_bearings(self):
-        metadata_file_path = os.path.join(self._dataset_dir, self._metadata_file)
         bearing_label = []
         bearing_file_names = []
 
-        with open(metadata_file_path, 'r') as fd:
+        with open(self._metadata_path, 'r') as fd:
             reader = csv.reader(fd)
             next(reader) # skip the first line which is the header
             for row in reader:

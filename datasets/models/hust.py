@@ -60,8 +60,6 @@ def download_file(url, dirname, file_name, progress_bar=None):
     print(f'The file has been downloaded to the : {full_path}')
 
 
-# extract the data from zip file
-    # pattern=r'([A-Za-z]+)\.(\d+)\.(\d+)_W,(\w+\.mat)'
 def extract_zip(zip_file_path, target_dir, pattern=r'([^/]+\.mat)$'):
     print("Extracting Bearings Data...")
     
@@ -90,9 +88,6 @@ def extract_zip(zip_file_path, target_dir, pattern=r'([^/]+\.mat)$'):
     print(f'{counter} files were extracted into {target_dir} directory.')
 
 
-
-# creates a metadata file from bearing data files containing the 
-# failure location, bearing type, working condition, and file name.
 def create_metadata_file(data_dir, target_dir):
     file_names = os.listdir(data_dir)
     data = [['types of defects ', 'types of bearing', 'working conditions', 'file']]

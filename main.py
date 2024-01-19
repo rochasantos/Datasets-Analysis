@@ -14,7 +14,8 @@ import numpy as np
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 
 from datasets.mfpt import MFPT
-from datasets.cwru import CWRU
+# from datasets.cwru import CWRU
+from datasets.models.cwru import CWRU
 from datasets.models.hust import HUST
 from datasets.models.ottawa import OTTAWA
 from datasets.models.xjut import XJUT
@@ -80,7 +81,7 @@ def merge_datasets(datasets):
 @timer
 def experimenter(source, target, clfs):
 
-    write_in_file("execution_time", f"{target[0]}\n")
+    write_in_file("execution_time", f"{target[0][0]}\n")
 
     print("\nPerforming Experiments.")
     
@@ -108,7 +109,7 @@ def main():
     clfs = [
             # ('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
             # ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
-            ('Balanced Random Forest', balanced_random_forest.instantiate_balanced_random_forest()),
+            # ('Balanced Random Forest', balanced_random_forest.instantiate_balanced_random_forest()),
             # ('Logistic Regression', auto_lr.instantiate_auto_lr()),
             # ('SVM', auto_svm.instantiate_auto_svm()),
             # ('MLP', auto_mlp.instantiate_auto_mlp()),
@@ -120,15 +121,15 @@ def main():
     #### Define experiments data set
     
     source = [
-        ('MFPT', MFPT()),
+        # ('MFPT', MFPT()),
         # ('CWRU', CWRU()),
-        ('HUST', HUST()),
+        # ('HUST', HUST()),
         # ('OTTAWA', OTTAWA()),
         # ('XJUT', XJUT())
     ]
 
     target = [
-        ('MFPT', MFPT()),
+        # ('MFPT', MFPT()),
         # ('CWRU', CWRU()),
         # ('HUST', HUST()),
         # ('OTTAWA', OTTAWA()),
@@ -137,10 +138,11 @@ def main():
 
 
     # hust[1].download()
+    # CWRU().download(dirname="datasets/data/cwru_raw", metadata_path="datasets/data/cwru_raw/cwru_bearings.csv")
     
-    # ottawa[1].load_acquisitions()
+    CWRU().load_acquisitions()
 
-    experimenter(source, target, clfs)
+    # experimenter(source, target, clfs)
     # experimenter(cwru, ottawa, clfs)
     # experimenter(ottawa, hust, clfs)
    
