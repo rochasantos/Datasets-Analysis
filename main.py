@@ -59,7 +59,7 @@ def get_acquisitions(dataset, domain, healthy_labels=['N', 'H']):
     else:
         X, y = merge_datasets(dataset)
     
-    print(f"### {domain}: ", dataset[0], "###")
+    print(f"### {domain}: ", ', '.join([data[0] for data in dataset]), "###")
     y = np.where(np.isin(y, healthy_labels), 'N', 'F')
     print(f"Labels: {set(y)}")
     for label in set(y):
@@ -109,7 +109,7 @@ def main():
     clfs = [
             # ('K-Nearest Neighbors', auto_knn.instantiate_auto_knn()),
             # ('Random Forest', auto_random_forest.instantiate_auto_random_forest()),
-            # ('Balanced Random Forest', balanced_random_forest.instantiate_balanced_random_forest()),
+            ('Balanced Random Forest', balanced_random_forest.instantiate_balanced_random_forest()),
             # ('Logistic Regression', auto_lr.instantiate_auto_lr()),
             # ('SVM', auto_svm.instantiate_auto_svm()),
             # ('MLP', auto_mlp.instantiate_auto_mlp()),
@@ -121,15 +121,15 @@ def main():
     #### Define experiments data set
     
     source = [
-        # ('MFPT', MFPT()),
-        # ('CWRU', CWRU()),
+        ('MFPT', MFPT()),
+        ('CWRU', CWRU()),
         # ('HUST', HUST()),
         # ('OTTAWA', OTTAWA()),
         # ('XJUT', XJUT())
     ]
 
     target = [
-        # ('MFPT', MFPT()),
+        ('MFPT', MFPT()),
         # ('CWRU', CWRU()),
         # ('HUST', HUST()),
         # ('OTTAWA', OTTAWA()),
@@ -140,9 +140,9 @@ def main():
     # hust[1].download()
     # CWRU().download(dirname="datasets/data/cwru_raw", metadata_path="datasets/data/cwru_raw/cwru_bearings.csv")
     
-    CWRU().load_acquisitions()
+    # CWRU().load_acquisitions()
 
-    # experimenter(source, target, clfs)
+    experimenter(source, target, clfs)
     # experimenter(cwru, ottawa, clfs)
     # experimenter(ottawa, hust, clfs)
    

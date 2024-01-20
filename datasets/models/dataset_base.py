@@ -10,8 +10,10 @@ class DatasetBase(ABC):
     def __init__(self):
         self._url: str
         self._name = self.__class__.__name__.lower()
+        
         self._dataset_dir = f"datasets/data/{self._name}"
         self._raw_data_dir = os.path.join(self._dataset_dir, f"{self._name}_raw")
+        
         self._metadata_path = os.path.join(self._dataset_dir, f"{self._name}_bearings.csv")
         zip_file_path = os.path.join(self._dataset_dir, f"{self._name}_bearings.zip")
         rar_file_path = os.path.join(self._dataset_dir, f"{self._name}_bearings.rar")
